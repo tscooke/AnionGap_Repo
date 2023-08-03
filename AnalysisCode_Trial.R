@@ -46,8 +46,10 @@ hist(
   )
 
 # Two Accession numbers are listed twice, so can't use them as unique identifiers.
-# One row has X_CAT as Basic Metabolic Panel, the other row has .CMPP
-# sodium.csv and chloride.csv both have the same duplication, so it adds four additional rows to NaCl.df
+# One row has X_CAT as Basic Metabolic Panel, the other row has .CMPP 
+# Sodium and Chloride both have this duplication, presumably bicarb does, too.
+# When merging sodium.csv and chloride.csv, R duplicates both rows, 
+# so that four additional rows are added to NaCl.df
 # 2-23-184-03789 
 # 2-23-184-04989
 # 8 additional rows added to combined.df, presumably through same duplication in bicarb.csv
