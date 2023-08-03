@@ -19,9 +19,36 @@ clean_csv <- function(csv, test){
     "X_NORM",
     "X_CAT"
   )]
-  names(csv)[which(names(csv) == "X_RESULT")] <- test
+  headers <- names(csv)
+  names(csv) <- paste0(test, headers)
   return(csv)
 }
 
-glimpse(sodium.csv)
-glimpse(chloride.csv)
+sodium.clean <- clean_csv(sodium.csv, "Sodium_")
+chloride.clean <- clean_csv(chloride.csv, "Chloride_")
+bicarb.clean <- clean_csv(bicarb.csv, "Bicarb_")
+
+NaCl.df <- merge(sodium.clean, chloride.clean, by.x = "Sodium_X_ACC", by.y = "Chloride_X_ACC")
+for (i in 1:nrow(sodium.csv)) {
+  if (sodium.csv[["X_ACC"]][i] != chloride.csv[["X_ACC"]][i]) print(i)
+}
+
+combined.df <- merge(NaCl.df, bicarb.clean, by.x = "Sodium_X_ACC", by.y = "Bicarb_X_ACC")
+
+combined.df <- combined.df %>% 
+  mutate(
+    AnionGap = Sodium_X_RESULT - Chloride_X_RESULT - Bicarb_X_RESULT
+  )
+
+hist(
+  combined.df$AnionGap,
+  breaks = 16
+  )
+
+# Two Accession numbers are listed twice, so can't use them as unique identifiers.
+# One row has X_CAT as Basic Metabolic Panel, the other row has .CMPP
+# sodium.csv and chloride.csv both have the same duplication, so it adds four additional rows to NaCl.df
+# 2-23-184-03789 
+# 2-23-184-04989
+# 8 additional rows added to combined.df, presumably through same duplication in bicarb.csv
+
