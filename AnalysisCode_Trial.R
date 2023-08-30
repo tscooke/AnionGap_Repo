@@ -45,6 +45,9 @@ hist(
   breaks = 16
   )
 
+AG.dens <- density(combined.df$AnionGap)
+plot(AG.dens)
+
 # Two Accession numbers are listed twice, so can't use them as unique identifiers.
 # One row has X_CAT as Basic Metabolic Panel, the other row has .CMPP 
 # Sodium and Chloride both have this duplication, presumably bicarb does, too.

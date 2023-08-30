@@ -1,8 +1,9 @@
 # Code to concatentate week-long csv reports into a single data frame
 
 # UPDATE TARGET FOLDER 'targetFolder' BEFORE RUNNING
+
 library(dplyr)
-setwd(paste0(getwd(),"/../00. Data"))
+setwd(paste0(getwd(),"/../00. Data/01. Raw Data"))
 list.files()
 
 targetFolder <- '061222-082022'
