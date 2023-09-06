@@ -28,6 +28,11 @@ clean.csv <- function(dataframe) {
   
   dataframe <- dataframe %>% 
     filter(str_ends(SVCRSC, "C702")) %>% 
+    filter(ENCTYP == 'Inpatient' |
+             ENCTYP == 'Outpatient' |
+             ENCTYP == 'Emergency' |
+             ENCTYP == 'Private Ambulatory'
+    ) %>% 
     mutate(
       Location = case_when(
         ENCTYP == 'Inpatient' ~ 0,
@@ -60,6 +65,8 @@ summary(lm.df)
 lmer.df <- lmer(RESULT ~ prePost + (1|MRN) + (Location|MRN), data = df)
 summary(lmer.df)
 
+lmer.df2 <- lmer(RESULT ~ prePost + (1|MRN) + ENCTYP, data = df)
+summary(lmer.df2)
 
 # 4) Once I have even a couple terms working, can probably reach out to Eldad 
     # to schedule another meeting
