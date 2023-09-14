@@ -16,8 +16,9 @@ csvCombined <- bind_rows(csv2022, csv2023)
 # 2) Data cleaning
     #[X] NEED to remove all SVCRSC values that aren't UC*C702
     #[X] Recode ENCTYP as dummy variable for 'Emergency', 'Inpatient', 'Outpatient',
-      # and 'Private Ambulatory'
-    #[X] Figure out why there are extra duplicated rows in the data set
+      # or 'Private Ambulatory'; and exclude everything else
+      # Actually, instead specifying ENCTYP/Location as a factor and 
+          # letting R take care of dummy coding
 
 clean.csv <- function(dataframe) {
   
@@ -32,17 +33,17 @@ clean.csv <- function(dataframe) {
              ENCTYP == 'Outpatient' |
              ENCTYP == 'Emergency' |
              ENCTYP == 'Private Ambulatory'
-    ) %>% 
-    mutate(
-      Location = case_when(
-        ENCTYP == 'Inpatient' ~ 0,
-        ENCTYP == 'Outpatient' ~ 1,
-        ENCTYP == 'Emergency' ~ 2,
-        ENCTYP == 'Private Ambulatory' ~ 3,
-        .default = NA,
-        TRUE ~ NA
-      )
+    ) %>%
+  mutate(
+    Location = case_when(
+      ENCTYP == 'Inpatient' ~ 'Inpatient',
+      ENCTYP == 'Outpatient' ~ 'Outpatient',
+      ENCTYP == 'Emergency' ~ 'Emergency',
+      ENCTYP == 'Private Ambulatory' ~ 'Outpatient',
     )
+  )
+  dataframe$Location <- factor(dataframe$Location,
+                                levels = c('Outpatient','Emergency','Inpatient'))
   
   return(dataframe)
 }
@@ -68,5 +69,38 @@ summary(lmer.df)
 lmer.df2 <- lmer(RESULT ~ prePost + (1|MRN) + ENCTYP, data = df)
 summary(lmer.df2)
 
+lmer.df3 <- lmer(RESULT ~ Location*prePost +
+                   (1 + Location|MRN) +
+                   (1 + prePost|MRN) +
+                   (1 + prePost|Location), data = df)
+
 # 4) Once I have even a couple terms working, can probably reach out to Eldad 
     # to schedule another meeting
+
+preMRN <- df$MRN[which(df$prePost == 0)]
+postMRN <- df$MRN[which(df$prePost == 1)]
+prePostRepeat <- logical()
+
+for (i in 1:length(postMRN)) {
+  prePostRepeat <- append(prePostRepeat, postMRN[i] %in% preMRN)
+}
+
+InptMRN <- df$MRN[which(df$Location == 'Inpatient')]
+OutptMRN <- df$MRN[which(df$Location == 'Outpatient')]
+EmergMRN <- df$MRN[which(df$Location == 'Emergency')]
+
+EmergInInpt <- logical()
+EmergInOtpt <- logical()
+OutptInInpt <- logical()
+
+for (i in 1:length(EmergMRN)) {
+  EmergInInpt <- append(EmergInInpt, EmergMRN[i] %in% InptMRN)
+}
+
+for (i in 1:length(EmergMRN)) {
+  EmergInOtpt <- append(EmergInOtpt, EmergMRN[i] %in% OutptMRN)
+}
+
+for (i in 1:length(OutptMRN)) {
+  OutptInInpt <- append(OutptInInpt, OutptMRN[i] %in% InptMRN)
+}
