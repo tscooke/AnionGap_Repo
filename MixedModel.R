@@ -28,6 +28,7 @@ clean.csv <- function(dataframe) {
     as.numeric()
   
   dataframe <- dataframe %>% 
+    filter(!is.na(RESULT)) %>% 
     filter(str_ends(SVCRSC, "C702")) %>% 
     filter(ENCTYP == 'Inpatient' |
              ENCTYP == 'Outpatient' |
@@ -73,10 +74,17 @@ lmer.df3 <- lmer(RESULT ~ Location*prePost +
                    (1 + Location|MRN) +
                    (1 + prePost|MRN) +
                    (1 + prePost|Location), data = df)
+# DID NOT CONVERGE
 
-# 4) Once I have even a couple terms working, can probably reach out to Eldad 
-    # to schedule another meeting
+lmer.df4 <- lmer(RESULT ~ 
+                   (1 + Location|MRN) +
+                   (1 + prePost|MRN) +
+                   (1 + prePost|Location), data = df)
 
+
+
+
+# Looking for overlapping subjects between pre/post and by Location
 preMRN <- df$MRN[which(df$prePost == 0)]
 postMRN <- df$MRN[which(df$prePost == 1)]
 prePostRepeat <- logical()
