@@ -74,12 +74,25 @@ lmer.df3 <- lmer(RESULT ~ Location*prePost +
                    (1 + Location|MRN) +
                    (1 + prePost|MRN) +
                    (1 + prePost|Location), data = df)
-# DID NOT CONVERGE
+# DID NOT CONVERGE (on old df that included 185 NAs in df$RESULT)
+# I think those NAs are actually removed automatically tho so may not be relevant
 
 lmer.df4 <- lmer(RESULT ~ 
                    (1 + Location|MRN) +
                    (1 + prePost|MRN) +
                    (1 + prePost|Location), data = df)
+# FAILS d/t singular matrix issue
+
+lmer.df5 <- lmer(RESULT ~
+                   (1 + prePost|MRN) +
+                   (1 + prePost|Location), data = df)
+# DID NOT CONVERGE
+
+lmer.df6 <- lmer(RESULT ~ prePost + (1 + Location|MRN), data = df)
+# DID NOT CONVERGE
+
+lmer.df7 <- lmer(RESULT ~ prePost + (1|MRN) + Location, data = df)
+# Converges
 
 
 
