@@ -75,7 +75,7 @@ lmer.df3 <- lmer(RESULT ~ Location*prePost +
                    (1 + prePost|MRN) +
                    (1 + prePost|Location), data = df)
 # DID NOT CONVERGE (on old df that included 185 NAs in df$RESULT)
-# I think those NAs are actually removed automatically tho so may not be relevant
+# I think NAs are actually removed automatically tho so may not be relevant
 
 lmer.df4 <- lmer(RESULT ~ 
                    (1 + Location|MRN) +
