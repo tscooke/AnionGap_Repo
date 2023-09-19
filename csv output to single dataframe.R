@@ -3,10 +3,10 @@
 # UPDATE TARGET FOLDER 'targetFolder' BEFORE RUNNING
 
 library(dplyr)
-setwd(paste0(getwd(),"/../00. Data/01. Raw Data"))
+setwd(paste0(getwd(),"/../00. Data"))
 list.files()
 
-targetFolder <- '061123-081923'
+targetFolder <- '03. Reference Range Data'
 
 csv.to.dataframe <- function(targetFolder) {
 
@@ -27,4 +27,14 @@ csv.to.dataframe <- function(targetFolder) {
 
   write.csv(combinedCsv, file = "combined data.csv", row.names = FALSE)
   setwd('..')
+}
+
+clean.ag <- function(dataframe) {
+  
+  names(dataframe) <- str_replace_all(names(dataframe), "X_", "")
+  
+  dataframe$RESULT <- str_trim(dataframe$RESULT, side = "left") %>% 
+    as.numeric()
+  
+  return(dataframe)
 }
