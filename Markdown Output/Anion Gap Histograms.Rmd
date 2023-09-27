@@ -66,6 +66,31 @@ df <- df %>%
 result <- df$RESULT
 ### Range will output a vector, not a number, so figure out how to resolve that
 
+descStats <- function(dataframe, title) {
+  output <- data.frame(
+    c(
+      sapply(
+        c(
+          length(dataframe$RESULT),
+          median(dataframe$RESULT),
+          round(mean(dataframe$RESULT), 2),
+          round(sd(dataframe$RESULT), 2)
+        ),
+        as.character
+      ),
+      paste0(
+        as.character(range(dataframe$RESULT))[1],
+        " to ",
+        as.character(range(dataframe$RESULT))[2]
+      )
+    ),
+  row.names = c("n", "Median", "Mean", "Std. dev.", "Range")
+  )
+  names(output) <- title
+  return(output)
+}
+
+
 df.stats <- data.frame(
   c(
     sapply(
@@ -85,6 +110,19 @@ barplot(
   table(df$RESULT),
   main = "All data"
 )
+
+upperOutlier <- function(vector){mean(vector) + (3*sd(vector))}
+lowerOutlier <- function(vector){mean(vector) - (3*sd(vector))}
+
+rmOutliers <- function(dataframe) {
+  upper <- mean(dataframe$RESULT) + (3 * sd(dataframe$RESULT))
+  lower <- mean(dataframe$RESULT) - (3 * sd(dataframe$RESULT))
+  
+  dataframe.rmout <- dataframe %>% 
+    filter((RESULT < upper) & (RESULT > lower))
+  
+  return(dataframe.rmout)
+}
 
 upper <- mean(result) + (3 * sd(result))
 lower <- mean(result) - (3 * sd(result))
@@ -121,3 +159,173 @@ barplot(
 )
 
 ```
+
+```{r}
+df.2022 <- df %>% filter(prePost == 0)
+df.2023 <- df %>% filter(prePost == 1)
+
+ds.2022 <- descStats(df.2022, "2022 Descriptive Statistics")
+ds.2023 <- descStats(df.2023, "2023 Descriptive Statistics")
+
+kable(list(ds.2022, ds.2023))
+```
+
+```{r}
+upper <- upperOutlier(df.2022$RESULT)
+lower <- lowerOutlier(df.2022$RESULT)
+
+df.2022.rmout <- df.2022 %>% 
+   filter((RESULT < upper) & (RESULT > lower))
+
+upper <- upperOutlier(df.2023$RESULT)
+lower <- lowerOutlier(df.2023$RESULT)
+
+df.2023.rmout <- df.2023 %>% 
+   filter((RESULT < upper) & (RESULT > lower))
+
+ds.2022.rmout <- descStats(df.2022.rmout, "2022 Descriptive Statistics without outliers (3 sd)")
+ds.2023.rmout <- descStats(df.2023.rmout, "2023 Descriptive Statistics without outliers (3 sd)")
+
+kable(list(ds.2022.rmout, ds.2023.rmout))
+```
+
+```{r}
+df.2022.inpt <- df.2022 %>% filter(Location == "Inpatient")
+df.2022.outpt <- df.2022 %>% filter(Location == "Outpatient")
+df.2022.emerg <- df.2022 %>% filter(Location == "Emergency")
+
+df.2023.inpt <- df.2023 %>% filter(Location == "Inpatient")
+df.2023.outpt <- df.2023 %>% filter(Location == "Outpatient")
+df.2023.emerg <- df.2023 %>% filter(Location == "Emergency")
+
+barplot(
+  table(df.2022.inpt$RESULT),
+  main = "2022 Inpatient"
+)
+barplot(
+  table(df.2023.inpt$RESULT),
+  main = "2023 Inpatient"
+)
+kable(
+  list(
+    descStats(df.2022.inpt, "2022 Inpatient Descriptive Statistics"),
+    descStats(df.2023.inpt, "2023 Inpatient Descriptive Statistics")
+  )
+)
+
+barplot(
+  table(df.2022.outpt$RESULT),
+  main = "2022 Outpatient"
+)
+barplot(
+  table(df.2023.outpt$RESULT),
+  main = "2023 Outpatient"
+)
+kable(
+  list(
+    descStats(df.2022.outpt, "2022 Outpatient Descriptive Statistics"),
+    descStats(df.2023.outpt, "2023 Outpatient Descriptive Statistics")
+  )
+)
+
+
+barplot(
+  table(df.2022.emerg$RESULT),
+  main = "2022 Emergency"
+)
+barplot(
+  table(df.2023.emerg$RESULT),
+  main = "2023 Emergency"
+)
+kable(
+  list(
+    descStats(df.2022.emerg, "2022 Emergency Descriptive Statistics"),
+    descStats(df.2023.emerg, "2023 Emergency Descriptive Statistics")
+  )
+)
+```
+
+```{r}
+df.2022.inpt.rmout <- rmOutliers(df.2022.inpt)
+df.2022.outpt.rmout <- rmOutliers(df.2022.outpt)
+df.2022.emerg.rmout <- rmOutliers(df.2022.emerg)
+
+df.2023.inpt.rmout <- rmOutliers(df.2023.inpt)
+df.2023.outpt.rmout <- rmOutliers(df.2023.outpt)
+df.2023.emerg.rmout <- rmOutliers(df.2023.emerg)
+
+barplot(
+  table(df.2022.inpt.rmout$RESULT),
+  main = "2022 Inpatient w/o outliers (3 sd)"
+)
+barplot(
+  table(df.2023.inpt.rmout$RESULT),
+  main = "2023 Inpatient w/o outliers (3 sd)"
+)
+kable(
+  list(
+    descStats(df.2022.inpt.rmout, "2022 Inpatient Descriptive Statistics w/o outliers (3 sd)"),
+    descStats(df.2023.inpt.rmout, "2023 Inpatient Descriptive Statistics w/o outliers (3 sd)")
+  )
+)
+
+barplot(
+  table(df.2022.outpt.rmout$RESULT),
+  main = "2022 Outpatient w/o outliers (3 sd)"
+)
+barplot(
+  table(df.2023.outpt.rmout$RESULT),
+  main = "2023 Outpatient w/o outliers (3 sd)"
+)
+kable(
+  list(
+    descStats(df.2022.outpt.rmout, "2022 Outpatient Descriptive Statistics w/o outliers (3 sd)"),
+    descStats(df.2023.outpt.rmout, "2023 Outpatient Descriptive Statistics w/o outliers (3 sd)")
+  )
+)
+
+barplot(
+  table(df.2022.emerg.rmout$RESULT),
+  main = "2022 Emergency w/o outliers (3 sd)"
+)
+barplot(
+  table(df.2023.emerg.rmout$RESULT),
+  main = "2023 Emergency w/o outliers (3 sd)"
+)
+kable(
+  list(
+    descStats(df.2022.emerg.rmout, "2022 Emergency Descriptive Statistics w/o outliers (3 sd)"),
+    descStats(df.2023.emerg.rmout, "2023 Emergency Descriptive Statistics w/o outliers (3 sd)")
+  )
+)
+```
+
+```{r}
+df.2022.rmout.rmdup <- df.2022.rmout[!(duplicated(df.2022.rmout$MRN)),]
+df.2023.rmout.rmdup <- df.2023.rmout[!(duplicated(df.2023.rmout$MRN)),]
+
+df.2022.inpt.rmout.rmdup <- df.2022.inpt.rmout[!(duplicated(df.2022.inpt.rmout$MRN)),]
+df.2022.outpt.rmout.rmdup <- df.2022.outpt.rmout[!(duplicated(df.2022.outpt.rmout$MRN)),]
+df.2022.emerg.rmout.rmdup <- df.2022.emerg.rmout[!(duplicated(df.2022.emerg.rmout$MRN)),]
+
+df.2023.inpt.rmout.rmdup <- df.2023.inpt.rmout[!(duplicated(df.2023.inpt.rmout$MRN)),]
+df.2023.outpt.rmout.rmdup <- df.2023.outpt.rmout[!(duplicated(df.2023.outpt.rmout$MRN)),]
+df.2023.emerg.rmout.rmdup <- df.2023.emerg.rmout[!(duplicated(df.2023.emerg.rmout$MRN)),]
+
+t.test(df.2022.rmout.rmdup$RESULT, df.2023.rmout.rmdup$RESULT)
+t.test(df.2022.inpt.rmout.rmdup$RESULT, df.2023.inpt.rmout.rmdup$RESULT)
+t.test(df.2022.outpt.rmout.rmdup$RESULT, df.2023.outpt.rmout.rmdup$RESULT)
+t.test(df.2022.emerg.rmout.rmdup$RESULT, df.2023.emerg.rmout.rmdup$RESULT)
+
+t.test(df.2022.inpt.rmout.rmdup$RESULT, df.2022.outpt.rmout.rmdup$RESULT)
+t.test(df.2022.inpt.rmout.rmdup$RESULT, df.2022.emerg.rmout.rmdup$RESULT)
+t.test(df.2022.outpt.rmout.rmdup$RESULT, df.2022.emerg.rmout.rmdup$RESULT)
+
+t.test(df.2023.inpt.rmout.rmdup$RESULT, df.2023.outpt.rmout.rmdup$RESULT)
+t.test(df.2023.inpt.rmout.rmdup$RESULT, df.2023.emerg.rmout.rmdup$RESULT)
+t.test(df.2023.outpt.rmout.rmdup$RESULT, df.2023.emerg.rmout.rmdup$RESULT)
+
+```
+
+
+
