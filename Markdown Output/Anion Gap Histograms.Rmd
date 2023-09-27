@@ -90,22 +90,10 @@ descStats <- function(dataframe, title) {
   return(output)
 }
 
+ds <- descStats(df, "Descriptive Statistics of all data")
 
-df.stats <- data.frame(
-  c(
-    sapply(
-      c(median(result), round(mean(result),2), round(sd(result),2)),
-      as.character
-    ),
-    paste0(as.character(range(result))[1]," to ",as.character(range(result))[2])
-  ),
-  row.names = c("Median", "Mean", "Std. dev.", "Range")
-)
+kable(ds)
 
-kable(
-  df.stats,
-  col.names = "Descriptive statistics of all data"
-  )
 barplot(
   table(df$RESULT),
   main = "All data"
@@ -124,33 +112,10 @@ rmOutliers <- function(dataframe) {
   return(dataframe.rmout)
 }
 
-upper <- mean(result) + (3 * sd(result))
-lower <- mean(result) - (3 * sd(result))
+df.rmout <- rmOutliers(df)
 
-df.rmout <- df %>% 
-  filter((RESULT < upper) & (RESULT > lower))
-
-kable(
-  data.frame(
-    c(
-      sapply(
-        c(
-          median(df.rmout$RESULT), 
-          round(mean(df.rmout$RESULT),2), 
-          round(sd(df.rmout$RESULT),2)
-        ),
-        as.character
-      ),
-    paste0(
-      as.character(range(df.rmout$RESULT))[1],
-      " to ",
-      as.character(range(df.rmout$RESULT))[2]
-    )
-  ),
-  row.names = c("Median", "Mean", "Std. dev.", "Range")
-  ),
-  col.names = "Descriptive statistics without outliers (3 sd)"
-)
+ds.rmout <- descStats(df.rmout, "Descriptive Statistics without outliers (3 sd)")
+kable(ds.rmout)
 
 barplot(
   table(df.rmout$RESULT),

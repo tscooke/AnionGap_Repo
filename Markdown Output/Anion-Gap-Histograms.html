@@ -452,43 +452,44 @@ descStats &lt;- function(dataframe, title) {
   return(output)
 }
 
+ds &lt;- descStats(df, &quot;Descriptive Statistics of all data&quot;)
+# df.stats &lt;- data.frame(
+#   c(
+#     sapply(
+#       c(median(result), round(mean(result),2), round(sd(result),2)),
+#       as.character
+#     ),
+#     paste0(as.character(range(result))[1],&quot; to &quot;,as.character(range(result))[2])
+#   ),
+#   row.names = c(&quot;Median&quot;, &quot;Mean&quot;, &quot;Std. dev.&quot;, &quot;Range&quot;)
+# )
 
-df.stats &lt;- data.frame(
-  c(
-    sapply(
-      c(median(result), round(mean(result),2), round(sd(result),2)),
-      as.character
-    ),
-    paste0(as.character(range(result))[1],&quot; to &quot;,as.character(range(result))[2])
-  ),
-  row.names = c(&quot;Median&quot;, &quot;Mean&quot;, &quot;Std. dev.&quot;, &quot;Range&quot;)
-)
-
-kable(
-  df.stats,
-  col.names = &quot;Descriptive statistics of all data&quot;
-  )</code></pre>
+kable(ds)</code></pre>
 <table>
 <thead>
 <tr class="header">
 <th align="left"></th>
-<th align="left">Descriptive statistics of all data</th>
+<th align="left">Descriptive Statistics of all data</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
+<td align="left">n</td>
+<td align="left">210946</td>
+</tr>
+<tr class="even">
 <td align="left">Median</td>
 <td align="left">13</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">Mean</td>
 <td align="left">12.89</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">Std. dev.</td>
 <td align="left">3.33</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">Range</td>
 <td align="left">-19 to 97</td>
 </tr>
@@ -512,54 +513,35 @@ rmOutliers &lt;- function(dataframe) {
   return(dataframe.rmout)
 }
 
-upper &lt;- mean(result) + (3 * sd(result))
-lower &lt;- mean(result) - (3 * sd(result))
+df.rmout &lt;- rmOutliers(df)
 
-df.rmout &lt;- df %&gt;% 
-  filter((RESULT &lt; upper) &amp; (RESULT &gt; lower))
-
-kable(
-  data.frame(
-    c(
-      sapply(
-        c(
-          median(df.rmout$RESULT), 
-          round(mean(df.rmout$RESULT),2), 
-          round(sd(df.rmout$RESULT),2)
-        ),
-        as.character
-      ),
-    paste0(
-      as.character(range(df.rmout$RESULT))[1],
-      &quot; to &quot;,
-      as.character(range(df.rmout$RESULT))[2]
-    )
-  ),
-  row.names = c(&quot;Median&quot;, &quot;Mean&quot;, &quot;Std. dev.&quot;, &quot;Range&quot;)
-  ),
-  col.names = &quot;Descriptive statistics without outliers (3 sd)&quot;
-)</code></pre>
+ds.rmout &lt;- descStats(df.rmout, &quot;Descriptive Statistics without outliers (3 sd)&quot;)
+kable(ds.rmout)</code></pre>
 <table>
 <thead>
 <tr class="header">
 <th align="left"></th>
-<th align="left">Descriptive statistics without outliers (3 sd)</th>
+<th align="left">Descriptive Statistics without outliers (3 sd)</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
+<td align="left">n</td>
+<td align="left">208472</td>
+</tr>
+<tr class="even">
 <td align="left">Median</td>
 <td align="left">12</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">Mean</td>
 <td align="left">12.74</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">Std. dev.</td>
 <td align="left">2.95</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">Range</td>
 <td align="left">3 to 22</td>
 </tr>
