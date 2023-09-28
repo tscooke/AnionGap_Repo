@@ -6,12 +6,12 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
-1. Import data
+## 1. Import data
 
-```{r}
+```{r, echo = TRUE}
 library(tidyverse)
 library(knitr)
 
@@ -25,9 +25,9 @@ csv2022 <- read.csv(paste0(
 csvCombined <- bind_rows(csv2022, csv2023)
 ```
 
-2. Clean data, add Location and prePost variables
+## 2. Clean data, add Location and prePost variables
 
-```{r}
+```{r, echo = TRUE}
 clean.csv <- function(dataframe) {
   names(dataframe) <- str_replace_all(names(dataframe), "X_", "")
   dataframe$RESULT <- str_trim(dataframe$RESULT, side = "left") %>% 
@@ -60,7 +60,7 @@ df <- df %>%
   )
 ```
 
-3. Create Histograms
+## 3. Create Histograms
 
 ```{r}
 result <- df$RESULT
@@ -154,6 +154,8 @@ ds.2023.rmout <- descStats(df.2023.rmout, "2023 Descriptive Statistics without o
 kable(list(ds.2022.rmout, ds.2023.rmout))
 ```
 
+## Descriptive statistics by Location
+
 ```{r}
 df.2022.inpt <- df.2022 %>% filter(Location == "Inpatient")
 df.2022.outpt <- df.2022 %>% filter(Location == "Outpatient")
@@ -210,6 +212,8 @@ kable(
 )
 ```
 
+## Remove outliers and repeat statistics
+
 ```{r}
 df.2022.inpt.rmout <- rmOutliers(df.2022.inpt)
 df.2022.outpt.rmout <- rmOutliers(df.2022.outpt)
@@ -264,6 +268,8 @@ kable(
   )
 )
 ```
+
+## Remove duplicate MRNs and perform t-tests 
 
 ```{r}
 df.2022.rmout.rmdup <- df.2022.rmout[!(duplicated(df.2022.rmout$MRN)),]
