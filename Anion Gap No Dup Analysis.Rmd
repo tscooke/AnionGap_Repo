@@ -1,0 +1,73 @@
+---
+title: "Anion Gap No Dup Analysis"
+author: "Tyler Cooke"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## 1. Import data
+
+```{r, echo = TRUE}
+library(tidyverse)
+library(knitr)
+
+setwd(paste0(getwd(), "/../.."))
+csv2023 <- read.csv(paste0(
+  getwd(), "/00. Data/02. Combined Data/AGAP_0611-081923.csv"
+))
+csv2022 <- read.csv(paste0(
+  getwd(), "/00. Data/02. Combined Data/AGAP_0612-082022.csv"
+))
+csvCombined <- bind_rows(csv2022, csv2023)
+```
+
+## 2. Clean data, add Location and prePost variables
+
+```{r, echo = TRUE}
+clean.csv <- function(dataframe) {
+  names(dataframe) <- str_replace_all(names(dataframe), "X_", "")
+  dataframe$RESULT <- str_trim(dataframe$RESULT, side = "left") %>% 
+    as.numeric()
+  dataframe <- dataframe %>% 
+    filter(!is.na(RESULT)) %>% 
+    filter(str_ends(SVCRSC, "C702")) %>% 
+    filter(ENCTYP == 'Inpatient' |
+             ENCTYP == 'Outpatient' |
+             ENCTYP == 'Emergency' |
+             ENCTYP == 'Private Ambulatory'
+    ) %>%
+  mutate(
+    Location = case_when(
+      ENCTYP == 'Inpatient' ~ 'Inpatient',
+      ENCTYP == 'Outpatient' ~ 'Outpatient',
+      ENCTYP == 'Emergency' ~ 'Emergency',
+      ENCTYP == 'Private Ambulatory' ~ 'Outpatient',
+    )
+  )
+  dataframe$Location <- factor(dataframe$Location,
+                                levels = c('Outpatient','Emergency','Inpatient'))
+  return(dataframe)
+}
+
+df <- clean.csv(csvCombined)
+df <- df %>% 
+  mutate(
+    prePost = if_else(str_detect(PERFORM_DT_TM,"/22 "), 0, 1)
+  )
+
+df.2022 <- filter(df, prePost == 0)
+df.2023 <- filter(df, prePost == 1)
+
+df.2022.rmdup <- df.2022[!duplicated(df.2022$MRN),]
+df.2023.rmdup <- df.2023[!duplicated(df.2023$MRN),]
+```
+
+
+
+
+
+
