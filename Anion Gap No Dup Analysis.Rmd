@@ -14,6 +14,7 @@ knitr::opts_chunk$set(echo = FALSE)
 ```{r, echo = TRUE}
 library(tidyverse)
 library(knitr)
+library(ggthemes)
 
 setwd(paste0(getwd(), "/.."))
 csv2023 <- read.csv(paste0(
@@ -64,6 +65,25 @@ df.2022 <- filter(df, prePost == 0)
 df.2023 <- filter(df, prePost == 1)
 
 days <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+dates.2022 <- str_sub(df.2022$PERFORM_DT_TM, start = 1, end = 8)
+dates.2022 <- dates.2022[!duplicated(dates.2022)]
+dateday.2022 <- data.frame(dates.2022, rep(days, length.out = length(dates.2022)))
+
+dates.2023 <- str_sub(df.2023$PERFORM_DT_TM, start = 1, end = 8)
+dates.2023 <- dates.2023[!duplicated(dates.2023)]
+dateday.2023 <- data.frame(dates.2023, rep(days, length.out = length(dates.2023)))
+
+df.2022 <- df.2022 %>% 
+  mutate(
+    DayOfWeek = dateday.2022[match(str_sub(PERFORM_DT_TM, start = 1, end = 8),
+                                   dateday.2022[,1]),2]
+  )
+
+df.2023 <- df.2023 %>% 
+  mutate(
+    DayOfWeek = dateday.2023[match(str_sub(PERFORM_DT_TM, start = 1, end = 8),
+                                   dateday.2023[,1]),2]
+  )
 
 df.2022.rmdup <- df.2022[!duplicated(df.2022$MRN),]
 df.2023.rmdup <- df.2023[!duplicated(df.2023$MRN),]
@@ -128,6 +148,12 @@ overlay.plot <- plot.2022 +
     data = df.2023.rmdup,
     color = "red",
     binwidth = 1)
+
+
+dayplot.2022 <- ggplot(df.2022.rmdup, aes(x = DayOfWeek)) +
+  geom_bar() +
+  theme_fivethirtyeight()
+dayplot.2022
 
 ```
 
