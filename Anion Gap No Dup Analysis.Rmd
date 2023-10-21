@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = FALSE)
 library(tidyverse)
 library(knitr)
 
-setwd(paste0(getwd(), "/../.."))
+setwd(paste0(getwd(), "/.."))
 csv2023 <- read.csv(paste0(
   getwd(), "/00. Data/02. Combined Data/AGAP_0611-081923.csv"
 ))
@@ -50,6 +50,7 @@ clean.csv <- function(dataframe) {
   )
   dataframe$Location <- factor(dataframe$Location,
                                 levels = c('Outpatient','Emergency','Inpatient'))
+  
   return(dataframe)
 }
 
@@ -62,12 +63,71 @@ df <- df %>%
 df.2022 <- filter(df, prePost == 0)
 df.2023 <- filter(df, prePost == 1)
 
+days <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+
 df.2022.rmdup <- df.2022[!duplicated(df.2022$MRN),]
 df.2023.rmdup <- df.2023[!duplicated(df.2023$MRN),]
 ```
 
+## 3. Descriptive Statistics
 
+```{r}
+descStats <- function(dataframe, title) {
+  output <- data.frame(
+    c(
+      sapply(
+        c(
+          length(dataframe$RESULT),
+          median(dataframe$RESULT),
+          round(mean(dataframe$RESULT), 2),
+          round(sd(dataframe$RESULT), 2)
+        ),
+        as.character
+      ),
+      paste0(
+        as.character(range(dataframe$RESULT))[1],
+        " to ",
+        as.character(range(dataframe$RESULT))[2]
+      )
+    ),
+  row.names = c("n", "Median", "Mean", "Std. dev.", "Range")
+  )
+  names(output) <- title
+  return(output)
+}
 
+ds.2022 <- descStats(df.2022.rmdup, "Descriptive Statistics, 2022 data")
+ds.2023 <- descStats(df.2023.rmdup, "Descriptive Statistics, 2023 data")
 
+kable(ds.2022)
+kable(ds.2023)
+```
 
+## 4. Density Plots
+
+```{r}
+plot.2022 <- ggplot(df.2022.rmdup, aes(x = RESULT)) +
+  geom_density(fill = "blue", alpha = 0.5) +
+  labs(title = "Density Plot for 2022 (dups removed)")
+
+plot.2022 <- ggplot(df.2022.rmdup, aes(x = RESULT)) +
+  geom_freqpoly(
+    color = "blue",
+    binwidth = 1) +
+  labs(title = "Frequency Plot for 2022 (dups removed)")
+
+plot.2023 <- ggplot(df.2023.rmdup, aes(x = RESULT)) +
+  geom_freqpoly(
+    color = "red", 
+    alpha = 0.5,
+    binwidth = 1) +
+  labs(title = "Frequency Plot for 2023 (dups removed)")
+
+overlay.plot <- plot.2022 + 
+  geom_freqpoly(
+    data = df.2023.rmdup,
+    color = "red",
+    binwidth = 1)
+
+```
 
