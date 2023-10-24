@@ -76,13 +76,16 @@ dateday.2023 <- data.frame(dates.2023, rep(days, length.out = length(dates.2023)
 df.2022 <- df.2022 %>% 
   mutate(
     DayOfWeek = dateday.2022[match(str_sub(PERFORM_DT_TM, start = 1, end = 8),
-                                   dateday.2022[,1]),2]
+                                   dateday.2022[,1]),2],
+    Time = str_sub(PERFORM_DT_TM, start = 10, end = 11)
   )
+  
 
 df.2023 <- df.2023 %>% 
   mutate(
     DayOfWeek = dateday.2023[match(str_sub(PERFORM_DT_TM, start = 1, end = 8),
-                                   dateday.2023[,1]),2]
+                                   dateday.2023[,1]),2],
+    Time = str_sub(PERFORM_DT_TM, start = 10, end = 11)
   )
 
 df.2022.rmdup <- df.2022[!duplicated(df.2022$MRN),]
@@ -154,6 +157,10 @@ dayplot.2022 <- ggplot(df.2022.rmdup, aes(x = DayOfWeek)) +
   geom_bar() +
   theme_fivethirtyeight()
 dayplot.2022
+
+timeplot.2022 <- ggplot(df.2022.rmdup, aes(x = Time)) +
+  geom_bar()
+timeplot.2022
 
 ```
 
