@@ -158,9 +158,19 @@ dayplot.2022 <- ggplot(df.2022.rmdup, aes(x = DayOfWeek)) +
   theme_fivethirtyeight()
 dayplot.2022
 
-timeplot.2022 <- ggplot(df.2022.rmdup, aes(x = Time)) +
+timeplot.2022 <- ggplot(df.2022.rmdup, aes(x = Time, y = Error Rate , fill = NORM)) +
   geom_bar()
 timeplot.2022
+
+timeplot.2023 <- ggplot(df.2023.rmdup, aes(x = Time, fill = NORM)) +
+  geom_bar()
+timeplot.2023
+
+df.2023.rmdup.newRR <- df.2023.rmdup %>% 
+  mutate(
+    NORM.2 = if_else(RESULT >= 15, "H", "")
+  )
+
 
 ```
 
