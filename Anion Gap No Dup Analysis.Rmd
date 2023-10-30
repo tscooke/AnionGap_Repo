@@ -90,6 +90,30 @@ df.2023 <- df.2023 %>%
 
 df.2022.rmdup <- df.2022[!duplicated(df.2022$MRN),]
 df.2023.rmdup <- df.2023[!duplicated(df.2023$MRN),]
+
+df.2022.rmdup.wkday <- df.2022.rmdup %>% filter((DayOfWeek != "Saturday") & (DayOfWeek != "Sunday")) 
+df.2023.rmdup.wkday <- df.2023.rmdup %>% filter((DayOfWeek != "Saturday") & (DayOfWeek != "Sunday"))
+
+by_Time.2022 <- df.2022.rmdup.wkday %>% 
+  group_by(Time) %>% 
+  summarize(
+    Var = var(RESULT),
+    Min = min(RESULT),
+    Max = max(RESULT),
+    High = sum(RESULT >= 18),
+    Total = n(),
+    HighRate = High/Total
+  ) 
+by_Time.2023 <- df.2023.rmdup.wkday %>% 
+  group_by(Time) %>% 
+  summarize(
+    Var = var(RESULT),
+    Min = min(RESULT),
+    Max = max(RESULT),
+    High = sum(RESULT >= 18),
+    Total = n(),
+    HighRate = High/Total
+  )
 ```
 
 ## 3. Descriptive Statistics
