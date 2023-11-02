@@ -75,16 +75,22 @@ dateday.2023 <- data.frame(dates.2023, rep(days, length.out = length(dates.2023)
 
 df.2022 <- df.2022 %>% 
   mutate(
-    DayOfWeek = dateday.2022[match(str_sub(PERFORM_DT_TM, start = 1, end = 8),
+    DayOfWeek = factor(
+      dateday.2022[match(str_sub(PERFORM_DT_TM, start = 1, end = 8),
                                    dateday.2022[,1]),2],
+      levels = days
+      ),
     Time = str_sub(PERFORM_DT_TM, start = 10, end = 11)
   )
   
 
 df.2023 <- df.2023 %>% 
   mutate(
-    DayOfWeek = dateday.2023[match(str_sub(PERFORM_DT_TM, start = 1, end = 8),
+    DayOfWeek = factor(
+      dateday.2023[match(str_sub(PERFORM_DT_TM, start = 1, end = 8),
                                    dateday.2023[,1]),2],
+      levels = days
+      ),
     Time = str_sub(PERFORM_DT_TM, start = 10, end = 11)
   )
 
@@ -153,40 +159,52 @@ kable(ds.2023)
 ## 4. Density Plots
 
 ```{r}
-plot.2022 <- ggplot(df.2022.rmdup, aes(x = RESULT)) +
-  geom_density(fill = "blue", alpha = 0.5) +
-  labs(title = "Density Plot for 2022 (dups removed)")
+# plot.2022 <- ggplot(df.2022.rmdup, aes(x = RESULT)) +
+#   geom_density(fill = "blue", alpha = 0.5) +
+#   labs(title = "Density Plot for 2022 (dups removed)")
 
-plot.2022 <- ggplot(df.2022.rmdup, aes(x = RESULT)) +
+plot.2022 <- ggplot(df.2022.rmdup.wkday, aes(x = RESULT)) +
   geom_freqpoly(
     color = "blue",
     binwidth = 1) +
-  labs(title = "Frequency Plot for 2022 (dups removed)")
+  labs(title = "Frequency Plot for 2022, 2023 (dups removed, weekdays)")
 
-plot.2023 <- ggplot(df.2023.rmdup, aes(x = RESULT)) +
-  geom_freqpoly(
-    color = "red", 
-    alpha = 0.5,
-    binwidth = 1) +
-  labs(title = "Frequency Plot for 2023 (dups removed)")
+# plot.2023 <- ggplot(df.2023.rmdup.wkday, aes(x = RESULT)) +
+#   geom_freqpoly(
+#     color = "red", 
+#     alpha = 0.5,
+#     binwidth = 1) +
+#   labs(title = "Frequency Plot for 2023 (dups removed, weekdays)")
 
 overlay.plot <- plot.2022 + 
   geom_freqpoly(
-    data = df.2023.rmdup,
+    data = df.2023.rmdup.wkday,
     color = "red",
-    binwidth = 1)
-
+    binwidth = 1) +
+  labs(color = "Year")
 
 dayplot.2022 <- ggplot(df.2022.rmdup, aes(x = DayOfWeek)) +
   geom_bar() +
-  theme_fivethirtyeight()
-dayplot.2022
+  labs(title = "2022 Test Count by Day of Week")
+print(dayplot.2022)
 
-timeplot.2022 <- ggplot(df.2022.rmdup, aes(x = Time, y = Error Rate , fill = NORM)) +
-  geom_bar()
+dayplot.2023 <- ggplot(df.2023.rmdup, aes(x = DayOfWeek)) +
+  geom_bar() +
+  labs(title = "2023 Test Count by Day of Week")
+dayplot.2023
+
+# wkdayplot.2022 <- ggplot(df.2022.rmdup.wkday, aes(x = Time)) +
+#   geom_bar()
+# print(wkdayplot.2022)
+
+timeplot.2022 <- ggplot(by_Time.2022, aes(y = Total)) +
+  geom_bar() 
+
+# +
+#   geom_line(aes(x = Time, y = HighRate))
 timeplot.2022
 
-timeplot.2023 <- ggplot(df.2023.rmdup, aes(x = Time, fill = NORM)) +
+timeplot.2023 <- ggplot(df.2023.rmdup.wkday, aes(x = Time, fill = NORM)) +
   geom_bar()
 timeplot.2023
 
