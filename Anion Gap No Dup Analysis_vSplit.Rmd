@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ## 1. Import data
 
-```{r, echo = FALSE}
+```{r, echo = TRUE}
 library(tidyverse)
 library(knitr)
 library(ggthemes)
@@ -28,11 +28,7 @@ csvCombined <- bind_rows(csv2022, csv2023)
 
 ## 2. Clean data, add Location and prePost variables
 
--   Filter patient location for Emergency, Inpatient, and Outpatient (including "Private Ambulatory")
--   Add prePost variable (2022 = 0, 2023 = 1)
--   Add Time, Date, and DayOfWeek variables (extracted from PERFORM_DT_TM)
-
-```{r, echo = FALSE}
+```{r, echo = TRUE}
 clean.csv <- function(dataframe) {
   names(dataframe) <- str_replace_all(names(dataframe), "X_", "")
   dataframe$RESULT <- str_trim(dataframe$RESULT, side = "left") %>% 
@@ -79,11 +75,8 @@ dateday.2023 <- data.frame(dates.2023, rep(days, length.out = length(dates.2023)
 
 df.2022 <- df.2022 %>% 
   mutate(
-    DayOfWeek = factor(
-      dateday.2022[match(str_sub(PERFORM_DT_TM, start = 1, end = 8),
+    DayOfWeek = dateday.2022[match(str_sub(PERFORM_DT_TM, start = 1, end = 8),
                                    dateday.2022[,1]),2],
-      levels = days
-      ),
     Time = str_sub(PERFORM_DT_TM, start = 10, end = 11),
     Date = str_sub(PERFORM_DT_TM, start = 1, end = 8)
   )
@@ -91,11 +84,8 @@ df.2022 <- df.2022 %>%
 
 df.2023 <- df.2023 %>% 
   mutate(
-    DayOfWeek = factor(
-      dateday.2023[match(str_sub(PERFORM_DT_TM, start = 1, end = 8),
+    DayOfWeek = dateday.2023[match(str_sub(PERFORM_DT_TM, start = 1, end = 8),
                                    dateday.2023[,1]),2],
-      levels = days
-      ),
     Time = str_sub(PERFORM_DT_TM, start = 10, end = 11),
     Date = str_sub(PERFORM_DT_TM, start = 1, end = 8)
   )
@@ -106,8 +96,45 @@ df.2023.rmdup <- df.2023[!duplicated(df.2023$MRN),]
 df.2022.rmdup.wkday <- df.2022.rmdup %>% filter((DayOfWeek != "Saturday") & (DayOfWeek != "Sunday")) 
 df.2023.rmdup.wkday <- df.2023.rmdup %>% filter((DayOfWeek != "Saturday") & (DayOfWeek != "Sunday"))
 
+by_Time.2022 <- df.2022.rmdup.wkday %>% 
+  group_by(Time) %>% 
+  summarize(
+    Var = var(RESULT),
+    Min = min(RESULT),
+    Max = max(RESULT),
+    High = sum(RESULT >= 18),
+    Total = n(),
+    HighRate = High/Total
+  ) 
+by_Time.2023 <- df.2023.rmdup.wkday %>% 
+  group_by(Time) %>% 
+  summarize(
+    Var = var(RESULT),
+    Min = min(RESULT),
+    Max = max(RESULT),
+    High = sum(RESULT >= 18),
+    Total = n(),
+    HighRate = High/Total
+  )
 
+by_Date.2022 <- df.2022.rmdup.wkday %>% 
+  group_by(Date) %>% 
+  summarize(
+    Line1 = sum(SVCRSC == "U C1C702"),
+    Line2 = sum(SVCRSC == "U C2C702"),
+    Total = n()
+  )
+by_Date.2022 %>% print(n = 50)
 
+by_Date.2023 <- df.2023.rmdup.wkday %>% 
+  group_by(Date) %>% 
+  summarize(
+    Line3 = sum(SVCRSC == "UC3C702"),
+    Line4 = sum(SVCRSC == "UC4C702"),
+    Line5 = sum(SVCRSC == "UC5C702"),
+    Total = n()
+  )
+by_Date.2023 %>% print(n = 50)
 ```
 
 ## 3. Descriptive Statistics
@@ -147,120 +174,51 @@ kable(ds.2023)
 ## 4. Density Plots
 
 ```{r}
+# plot.2022 <- ggplot(df.2022.rmdup, aes(x = RESULT)) +
+#   geom_density(fill = "blue", alpha = 0.5) +
+#   labs(title = "Density Plot for 2022 (dups removed)")
+
 plot.2022 <- ggplot(df.2022.rmdup.wkday, aes(x = RESULT)) +
   geom_freqpoly(
-    color = "red",
+    color = "blue",
     binwidth = 1) +
-  labs(title = "Anion Gap Frequency Plot (weekdays)")
+  labs(title = "Frequency Plot for 2022 (dups removed)")
+
+plot.2023 <- ggplot(df.2023.rmdup.wkday, aes(x = RESULT)) +
+  geom_freqpoly(
+    color = "red", 
+    alpha = 0.5,
+    binwidth = 1) +
+  labs(title = "Frequency Plot for 2023 (dups removed)")
 
 overlay.plot <- plot.2022 + 
   geom_freqpoly(
     data = df.2023.rmdup.wkday,
-    color = "blue",
-    binwidth = 1) +
-  annotate("text", x = 30, y = 5000,label = "Red = 2022", color = "red") +
-  annotate("text", x = 30, y = 4700, label = "Blue = 2023", color = "blue")
-overlay.plot
+    color = "red",
+    binwidth = 1)
 
 dayplot.2022 <- ggplot(df.2022.rmdup, aes(x = DayOfWeek)) +
-  geom_bar() +
-  labs(title = "2022 Test Count by Day of Week")
+  geom_bar()
 print(dayplot.2022)
 
-dayplot.2023 <- ggplot(df.2023.rmdup, aes(x = DayOfWeek)) +
-  geom_bar() +
-  labs(title = "2023 Test Count by Day of Week")
-dayplot.2023
+
+wkdayplot.2022 <- ggplot(df.2022.rmdup.wkday, aes(x = DayOfWeek)) +
+  geom_bar() 
+print(wkdayplot.2022)
+
+timeplot.2022 <- ggplot(df.2022.rmdup.wkday, aes(x = Time, y = Error Rate , fill = NORM)) +
+  geom_bar()
+timeplot.2022
+
+timeplot.2023 <- ggplot(df.2023.rmdup.wkday, aes(x = Time, fill = NORM)) +
+  geom_bar()
+timeplot.2023
+
+df.2023.rmdup.newRR <- df.2023.rmdup %>% 
+  mutate(
+    NORM.2 = if_else(RESULT >= 15, "H", "")
+  )
+
 
 ```
 
-## 5. Anion Gap Testing by Time
-
-```{r, echo = FALSE}
-by_Time.2022 <- df.2022.rmdup.wkday %>% 
-  group_by(Time) %>% 
-  summarize(
-    Var = var(RESULT),
-    Mean = mean(RESULT),
-    Min = min(RESULT),
-    Max = max(RESULT),
-    High = sum(RESULT >= 18),
-    Total = n(),
-    `High/Total` = High/Total
-  ) 
-
-by_Time.2023 <- df.2023.rmdup.wkday %>% 
-  group_by(Time) %>% 
-  summarize(
-    Var = var(RESULT),
-    Mean = mean(RESULT),
-    Min = min(RESULT),
-    Max = max(RESULT),
-    High = sum(RESULT >= 18),
-    Total = n(),
-    `High/Total` = High/Total
-  )
-
-ggplot(data = df.2022.rmdup.wkday, aes(x = Time)) +
-  geom_bar(aes(fill = RESULT >= 18)) +
-  scale_fill_manual(values = c("#1b9e77", "#d95f02")) +
-  labs(title = "2022 Number of Tests Run by Hour (weekdays)")
-
-ggplot(data = df.2023.rmdup.wkday, aes(x = Time)) +
-  geom_bar(aes(fill = RESULT >= 18)) +
-  scale_fill_manual(values = c("#1b9e77", "#d95f02")) +
-  labs(title = "2023 Number of Tests Run by Hour (weekdays)")
-
-HighTotal.plot <- ggplot() +
-  geom_point(data = by_Time.2022, aes(x = Time, y = High/Total), color = "red")+
-  geom_point(data = by_Time.2023, aes(x = Time, y = High/Total), color = "blue") +
-  annotate("text", x = 12, y = 0.2,label = "Red = 2022", color = "red") +
-  annotate("text", x = 12, y = 0.19, label = "Blue = 2023", color = "blue") +
-  labs(title = "Rate of High Anion Gap by Time of Day (weekdays)")
-HighTotal.plot
-
-by_Time.2022 %>% print(n=24) %>% kable(caption = "2022 Anion Gap Testing by Hour")
-by_Time.2023 %>% print(n=24) %>% kable(caption = "2023 Anion Gap Testing by Hour")
-
-```
-
-## 6. Anion Gap Testing by Day
-
-```{r, echo = FALSE}
-by_Date.2022 <- df.2022.rmdup %>% 
-  group_by(Date) %>% 
-  summarize(
-    Day = first(DayOfWeek),
-    Line1 = sum(SVCRSC == "U C1C702"),
-    Line2 = sum(SVCRSC == "U C2C702"),
-    Total = n()
-  )
-
-by_Date.2023 <- df.2023.rmdup %>% 
-  group_by(Date) %>% 
-  summarize(
-    Day = first(DayOfWeek),
-    Line3 = sum(SVCRSC == "UC3C702"),
-    Line4 = sum(SVCRSC == "UC4C702"),
-    Line5 = sum(SVCRSC == "UC5C702"),
-    Total = n()
-  )
-
-ggplot(df.2022.rmdup, aes(x = Date)) +
-  geom_bar() +
-  labs(title = "2022 Anion Gap Testing by Day")
-
-ggplot(df.2023.rmdup, aes(x = Date)) +
-  geom_bar() +
-  labs(title = "2023 Anion Gap Testing by Day")
-
-# ggplot(df.2022.rmdup, aes(x = Date)) +
-#   geom_line(aes(y = sum(SVCRSC == "U C1C702"))) +
-#   geom_line(aes(y = sum(SVCRSC == "U C2C702"))) +
-#   labs(title = "2022 Anion Gap Testing by Day")
-
-by_Date.2022 %>% print(n = 50) %>% kable()
-by_Date.2023 %>% print(n = 50) %>% kable()
-
-
-```
