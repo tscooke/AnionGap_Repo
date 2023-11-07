@@ -224,6 +224,53 @@ by_Time.2023 %>% print(n=24) %>% kable(caption = "2023 Anion Gap Testing by Hour
 
 ```
 
+### Sensitivity Analysis
+
+```{r, echo = FALSE}
+sens.range <- 16:22
+
+sens.df <- data.frame(Time = str_pad(00:23, 2, side = "left", pad = "0"))
+for (i in 1:length(sens.range)) {
+  col_name <- paste0("Level", sens.range[i])
+# HighRate_diff <- function(sens.value, sens.df) {
+#   i <- sens.value
+  by_Time.2022.sens <- df.2022.rmdup.wkday %>% 
+    group_by(Time) %>% 
+    summarize(
+      Total = n(),
+      High = sum(RESULT >= sens.range[i]),
+      HighRate = High / Total
+    )
+  by_Time.2023.sens <- df.2023.rmdup.wkday %>% 
+    group_by(Time) %>% 
+    summarize(
+      Total = n(),
+      High = sum(RESULT >= sens.range[i]),
+      HighRate = High/Total
+    )
+  sens.df <- sens.df %>% 
+    mutate(
+      !!col_name := (by_Time.2022.sens[["HighRate"]] - by_Time.2023.sens[["HighRate"]])
+    )
+  # return(sens.df)
+  }
+
+sens.df <- as.data.frame(t(sens.df))
+
+ggplot(data = sens.df, aes(x = Time)) +
+  geom_tile(aes(y = 16, fill = Level16)) +
+  geom_tile(aes(y = 17, fill = Level17)) +
+  geom_tile(aes(y = 18, fill = Level18)) +
+  geom_tile(aes(y = 19, fill = Level19)) +
+    geom_tile(aes(y = 20, fill = Level20)) +
+    geom_tile(aes(y = 21, fill = Level21)) +
+    geom_tile(aes(y = 22, fill = Level22)) +
+  scale_fill_gradient(low = "white", high = "purple") +
+  scale_y_continuous(n.breaks = 7) +
+  ylab("High Value Cut-off")+
+  labs(title = "(2022 - 2023) Difference in Rate of High Values", fill = "")
+```
+
 ## 6. Anion Gap Testing by Day
 
 ```{r, echo = FALSE}
