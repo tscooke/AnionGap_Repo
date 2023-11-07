@@ -255,7 +255,7 @@ for (i in 1:length(sens.range)) {
   # return(sens.df)
   }
 
-sens.df <- as.data.frame(t(sens.df))
+# sens.df <- as.data.frame(t(sens.df))
 
 ggplot(data = sens.df, aes(x = Time)) +
   geom_tile(aes(y = 16, fill = Level16)) +
