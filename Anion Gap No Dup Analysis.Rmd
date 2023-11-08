@@ -15,6 +15,7 @@ knitr::opts_chunk$set(echo = FALSE)
 library(tidyverse)
 library(knitr)
 library(ggthemes)
+library(ggnewscale)
 
 setwd(paste0(getwd(), "/.."))
 csv2023 <- read.csv(paste0(
@@ -105,17 +106,14 @@ df.2023.rmdup <- df.2023[!duplicated(df.2023$MRN),]
 
 df.2022.rmdup.wkday <- df.2022.rmdup %>% filter((DayOfWeek != "Saturday") & (DayOfWeek != "Sunday")) 
 df.2023.rmdup.wkday <- df.2023.rmdup %>% filter((DayOfWeek != "Saturday") & (DayOfWeek != "Sunday"))
-
-
-
 ```
 
 ## 3. Descriptive Statistics
 
 ```{r}
 descStats <- function(dataframe, title) {
-  output <- data.frame(
-    c(
+  summaryFunc <- function(dataframe) {
+    return(c(
       sapply(
         c(
           length(dataframe$RESULT),
@@ -130,10 +128,17 @@ descStats <- function(dataframe, title) {
         " to ",
         as.character(range(dataframe$RESULT))[2]
       )
-    ),
-  row.names = c("n", "Median", "Mean", "Std. dev.", "Range")
+    ))
+  }
+  
+  output <- data.frame(
+    summaryFunc(dataframe),
+    summaryFunc(filter(dataframe, Location == "Inpatient")),
+    summaryFunc(filter(dataframe, Location == "Emergency")),
+    summaryFunc(filter(dataframe, Location == "Outpatient")),
+    row.names = c("n", "Median", "Mean", "Std. dev.", "Range")
   )
-  names(output) <- title
+  names(output) <- c("Overall", "Inpatient", "Emergency", "Outpatient")
   return(output)
 }
 
@@ -162,6 +167,63 @@ overlay.plot <- plot.2022 +
   annotate("text", x = 30, y = 4700, label = "Blue = 2023", color = "blue")
 overlay.plot
 
+# Inpt22 <- "#fd974f"
+# Emrg22 <- "#d61800"
+# Otpt22 <- "#7f152e"
+# Inpt23 <- "#4cb5f5"
+# Emrg23 <- "#337bae"
+# Otpt23 <- "#1a405f"
+Inpt22 <- "#e9a0a5"
+Emrg22 <- "#c5373d"
+Otpt22 <- "#730c0d"
+Inpt23 <- "#9bcae9"
+Emrg23 <- "#006eae"
+Otpt23 <- "#002359"
+
+plot.2022.location <- ggplot(df.2022.rmdup.wkday, aes(x = RESULT)) +
+  geom_freqpoly(data = filter(df.2022.rmdup.wkday, Location == "Inpatient"), color = Inpt22, binwidth = 1) +
+  geom_freqpoly(data = filter(df.2022.rmdup.wkday, Location == "Emergency"), color = Emrg22, binwidth = 1) +
+  geom_freqpoly(data = filter(df.2022.rmdup.wkday, Location == "Outpatient"), color = Otpt22, binwidth = 1) +
+  labs(title = "2022 Anion Gap Frequency Plot by Location (weekdays)") +
+  theme_minimal()
+plot.2022.location +
+  annotate(
+    "text", x = 30, y = 1500, hjust = 0, lineheight = 1.8,
+    label = c("Legend", "\nInpatient", "\n\nEmergency", "\n\n\nOutpatient"),
+    color = c("black", Inpt22, Emrg22, Otpt22),
+    fontface = c("bold", "plain", "plain", "plain"))
+
+plot.2023.location <- ggplot(df.2023.rmdup.wkday, aes(x = RESULT)) +
+  geom_freqpoly(data = filter(df.2023.rmdup.wkday, Location == "Inpatient"), color = Inpt23, binwidth = 1) +
+  geom_freqpoly(data = filter(df.2023.rmdup.wkday, Location == "Emergency"), color = Emrg23, binwidth = 1) +
+  geom_freqpoly(data = filter(df.2023.rmdup.wkday, Location == "Outpatient"), color = Otpt23, binwidth = 1) +
+  labs(title = "2023 Anion Gap Frequency Plot by Location (weekdays)") +
+  theme_minimal()
+plot.2023.location  +
+    annotate(
+    "text", x = 30, y = 1500, hjust = 0, lineheight = 1.8,
+    label = c("Legend", "\nInpatient", "\n\nEmergency", "\n\n\nOutpatient"),
+    color = c("black", Inpt23, Emrg23, Otpt23),
+    fontface = c("bold", "plain", "plain", "plain"))
+
+location.overlay <- plot.2022.location + 
+    geom_freqpoly(data = filter(df.2023.rmdup.wkday, Location == "Inpatient"), color = Inpt23, binwidth = 1) +
+  geom_freqpoly(data = filter(df.2023.rmdup.wkday, Location == "Emergency"), color = Emrg23, binwidth = 1) +
+  geom_freqpoly(data = filter(df.2023.rmdup.wkday, Location == "Outpatient"), color = Otpt23, binwidth = 1) + 
+  labs(title = "Anion Gap Frequency Plot by Year and Location (weekdays)")
+location.overlay +
+  annotate(
+    "text", x = 30, y = 2750, hjust = 0, lineheight = 1.8,
+    label = c("Legend", "\n\n2022", "\n\n\nInpatient", "\n\n\n\nEmergency", "\n\n\n\n\nOutpatient"),
+    color = c("black", "black",Inpt22, Emrg22, Otpt22),
+    fontface = c("bold", "bold", "plain", "plain", "plain")) +
+  annotate(
+    "text", x = 30, y = 1500, hjust = 0, lineheight = 1.8,
+    label = c("2023", "\nInpatient", "\n\nEmergency", "\n\n\nOutpatient"),
+    color = c("black", Inpt23, Emrg23, Otpt23),
+    fontface = c("bold", "plain", "plain", "plain"))
+
+
 dayplot.2022 <- ggplot(df.2022.rmdup, aes(x = DayOfWeek)) +
   geom_bar() +
   labs(title = "2022 Test Count by Day of Week")
@@ -177,6 +239,99 @@ dayplot.2023
 ## 5. Anion Gap Testing by Time
 
 ```{r, echo = FALSE}
+highRateComparison <- function(dataframe1, dataframe2, highlevel) {
+  df1.name <- deparse(substitute(dataframe1))
+  df2.name <- deparse(substitute(dataframe2))
+  
+  by_Time1 <- dataframe1 %>% 
+    group_by(Time) %>% 
+    summarize(
+      High = sum(RESULT >= highlevel),
+      Total = n()
+    )
+  by_Time2 <- dataframe2 %>% 
+    group_by(Time) %>% 
+    summarize(
+      High = sum(RESULT >= highlevel),
+      Total = n()
+    )
+  plot.compare <- ggplot() +
+    geom_point(
+      data = by_Time1, 
+      aes(x = Time, y = High/Total, fill = Total), 
+      color = "black", pch = 21, size = 4) +
+    scale_fill_gradient(low = "#fbdcbc", high = "#832a00") +
+    labs(fill = "2022 Total") +
+    new_scale_fill() +
+    geom_point(
+      data = by_Time2, 
+      aes(x = Time, y = High/Total, fill = Total), 
+      color = "black", pch = 21, size = 4) +
+    scale_fill_gradient(low = "#cae5ee", high = "#003648") +
+    labs(fill = "2023 Total")
+  # +
+  #   annotate("text", x = 12, y = 0.2,label = paste0("Red = ",df1.name), color = "#c5373d") +
+  #   annotate("text", x = 12, y = 0.19, label = paste0("Blue = ",df2.name), color = "#006eae")
+  
+  return(plot.compare)
+}
+
+high <- 18
+# 
+# highRateComparison(df.2022.rmdup.wkday, df.2023.rmdup.wkday, 18) +
+#   labs(title = "test title")
+
+Inpt.plot <- highRateComparison(
+  filter(df.2022.rmdup.wkday, Location == "Inpatient"),
+  filter(df.2023.rmdup.wkday, Location == "Inpatient"),
+  highlevel = high) +
+  labs(title = paste0("Rate of Anion Gap ≥ ", high," by Hour, Inpatient (weekdays)")) 
+# +
+#   annotate(
+#     "text", x = 12, y = 0.25, lineheight = 1.8, hjust = 0,
+#     label = c("Red = 2022", "\nBlue = 2023"), 
+#     color = c("red", "blue")
+#   )
+
+Emerg.plot <- highRateComparison(
+  filter(df.2022.rmdup.wkday, Location == "Emergency"),
+  filter(df.2023.rmdup.wkday, Location == "Emergency"),
+  highlevel = high) +
+  labs(title = paste0("Rate of Anion Gap ≥ ", high," by Hour, Emergency (weekdays)")) 
+# +
+#   annotate(
+#     "text", x = 12, y = 0.25, lineheight = 1.8, hjust = 0,
+#     label = c("Red = 2022", "\nBlue = 2023"), 
+#     color = c("red", "blue")
+#   )
+
+Outpt.plot <- highRateComparison(
+  filter(df.2022.rmdup.wkday, Location == "Outpatient"),
+  filter(df.2023.rmdup.wkday, Location == "Outpatient"),
+  highlevel = high) +
+  labs(title = paste0("Rate of Anion Gap ≥ ", high," by Hour, Outpatient (weekdays)")) 
+# +
+#   annotate(
+#     "text", x = 12, y = 0.25, lineheight = 1.8, hjust = 0,
+#     label = c("Red = 2022", "\nBlue = 2023"), 
+#     color = c("red", "blue")
+#   )
+
+Inpt.plot
+Emerg.plot
+Outpt.plot #Why are there some missing values in plot???
+
+by_Time.otpt2023 <- df.2023.rmdup.wkday %>%
+  filter(Location == "Outpatient") %>%
+  group_by(Time) %>%
+  summarize(High = sum(RESULT >= high), Total = n())
+# by_Time.otpt2023 # Checking to confirm why there are "missing" points on graph
+
+by_Time.inpt2022 <- df.2022.rmdup.wkday %>% 
+  filter(Location == "Inpatient") %>% 
+  group_by(Time) %>% 
+  summarize(High = sum(RESULT >= high), Total = n())
+
 by_Time.2022 <- df.2022.rmdup.wkday %>% 
   group_by(Time) %>% 
   summarize(
@@ -201,6 +356,33 @@ by_Time.2023 <- df.2023.rmdup.wkday %>%
     `High/Total` = High/Total
   )
 
+HighTotal.plot <- ggplot() +
+  geom_point(
+    data = by_Time.2022, 
+    aes(x = Time, y = High/Total, fill = Total), 
+    color = "black", pch = 21, size = 4
+    ) +
+  scale_fill_gradient(low = "#fbdcbc", high = "#832a00") + 
+  labs(fill = "2022 Total") +
+  new_scale_fill() +
+  geom_point(
+    data = by_Time.2023, 
+    aes(x = Time, y = High/Total, fill = Total), 
+    color = "black", pch = 21, size = 4
+    ) +
+  scale_fill_gradient(low = "#cae5ee", high = "#003648") +
+  labs(fill = "2023 Total") +
+  # annotate("text", x = 12, y = 0.2,label = "Red = 2022", color = "red") +
+  # annotate("text", x = 12, y = 0.19, label = "Blue = 2023", color = "blue") +
+  labs(title = "Rate of High Anion Gap by Time of Day (weekdays)") +
+  theme_minimal()
+HighTotal.plot
+
+by_Time.2022 %>% print(n=24) %>% kable(caption = "2022 Anion Gap Testing by Hour")
+by_Time.2023 %>% print(n=24) %>% kable(caption = "2023 Anion Gap Testing by Hour")
+
+# by_Time.2023 %>% filter(Location == "Outpatient") %>% print(n=24)
+
 ggplot(data = df.2022.rmdup.wkday, aes(x = Time)) +
   geom_bar(aes(fill = RESULT >= 18)) +
   scale_fill_manual(values = c("#1b9e77", "#d95f02")) +
@@ -210,18 +392,6 @@ ggplot(data = df.2023.rmdup.wkday, aes(x = Time)) +
   geom_bar(aes(fill = RESULT >= 18)) +
   scale_fill_manual(values = c("#1b9e77", "#d95f02")) +
   labs(title = "2023 Number of Tests Run by Hour (weekdays)")
-
-HighTotal.plot <- ggplot() +
-  geom_point(data = by_Time.2022, aes(x = Time, y = High/Total), color = "red")+
-  geom_point(data = by_Time.2023, aes(x = Time, y = High/Total), color = "blue") +
-  annotate("text", x = 12, y = 0.2,label = "Red = 2022", color = "red") +
-  annotate("text", x = 12, y = 0.19, label = "Blue = 2023", color = "blue") +
-  labs(title = "Rate of High Anion Gap by Time of Day (weekdays)")
-HighTotal.plot
-
-by_Time.2022 %>% print(n=24) %>% kable(caption = "2022 Anion Gap Testing by Hour")
-by_Time.2023 %>% print(n=24) %>% kable(caption = "2023 Anion Gap Testing by Hour")
-
 ```
 
 ### Sensitivity Analysis
@@ -265,10 +435,11 @@ ggplot(data = sens.df, aes(x = Time)) +
     geom_tile(aes(y = 20, fill = Level20)) +
     geom_tile(aes(y = 21, fill = Level21)) +
     geom_tile(aes(y = 22, fill = Level22)) +
-  scale_fill_gradient(low = "white", high = "purple") +
+  scale_fill_gradient(low = "white", high = "#430b4e") +
   scale_y_continuous(n.breaks = 7) +
   ylab("High Value Cut-off")+
-  labs(title = "(2022 - 2023) Difference in Rate of High Values", fill = "")
+  labs(title = "(2022 - 2023) Difference in Rate of High Values", fill = "")+
+  theme_minimal()
 ```
 
 ## 6. Anion Gap Testing by Day
