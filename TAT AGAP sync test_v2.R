@@ -9,8 +9,13 @@ csv2022 <- read.csv(paste0(
   getwd(), "/00. Data/02. Combined Data/AGAP_0612-082022.csv"
 ))
 tat2022 <- read.csv(paste0(
-  getwd(), "/00. Data/00. Test Data/TAT_070322_RC.csv"
+  getwd(), "/00. Data/00. Test Data/TAT Columbia_0630-070522.csv"
 ))
+tat2022.stroke <- read.csv(paste0(
+  getwd(), "/00. Data/00. Test Data/TAT ColumbiaStroke_0630-070522.csv"
+))
+
+
 
 clean.csv <- function(dataframe) {
   names(dataframe) <- str_replace_all(names(dataframe), "X_", "")
@@ -38,11 +43,6 @@ clean.csv <- function(dataframe) {
   return(dataframe)
 }
 
-clean.tat <- function(dataframe) {
-  names(dataframe) <- str_replace_all(names(dataframe), "X_", "")
-  return(dataframe)
-}
-
 df.2022 <- clean.csv(csv2022)
 
 days <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
@@ -63,15 +63,29 @@ df.2022 <- df.2022 %>%
 
 df.2022.rmdup <- df.2022[!duplicated(df.2022$MRN),]
 
+clean.tat <- function(dataframe) {
+  names(dataframe) <- str_replace_all(names(dataframe), "\\.\\.\\.", "")
+  dataframe <- dataframe %>% 
+    mutate(
+      ACC = str_trim(Accession.NbrFormatted, side = "right")
+    )
+  return(dataframe)
+}
 
-tat.2022 <- clean.tat(tat2022)
-tat.2022 <- tat.2022 %>% 
-  filter(CAT == "Basic Metabolic Panel") %>% 
-  mutate(
-    Time = str_sub(COMPLETEDT, start = 10, end = 11),
-    Date = str_sub(COMPLETEDT, start = 1, end = 8)
-  )
+# 2) Confirm that the accession numbers in tat2022 are in df.2022
+# 3) Make note of which site has the right accession numbers so can just pull data from that in the future
 
-tat.2022.rmdup <- tat.2022[!duplicated(tat.2022$ACC),]
+tat.2022.stroke <- clean.tat(tat2022.stroke)
+
+tat.2022.syncd <- tat.2022[(tat.2022$Accession.NbrFormatted %in% df.2022.rmdup$ACC),]
+
+tat.2022.syncd$Performing.Department %>% table()
+
+# %>% 
+#   mutate(
+#     Time = str_sub(COMPLETEDT, start = 10, end = 11),
+#     Date = str_sub(COMPLETEDT, start = 1, end = 8)
+#   )
+
   # Remove duplicated Accession numbers
 
