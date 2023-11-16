@@ -44,7 +44,7 @@ clean.csv <- function(dataframe) {
   return(dataframe)
 }
 
-df.2022_v2 <- clean.csv(csv2022)
+df.2022 <- clean.csv(csv2022)
 
 days <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
 dates.2022 <- str_sub(df.2022$PERFORM_DT_TM, start = 1, end = 8)
@@ -63,7 +63,7 @@ df.2022 <- df.2022 %>%
   )
 
 df.2022.rmdup <- df.2022[!duplicated(df.2022$MRN),]
-df.2022_v2.rmdup <- df.2022_v2[!duplicated(df.2022$MRN),]
+# df.2022_v2.rmdup <- df.2022_v2[!duplicated(df.2022_v2$MRN),]
 
 ### CLEAN TAT DATA
 
@@ -95,6 +95,12 @@ df.2022.rmdup[!(df.2022.rmdup$MRN %in% tat.2022.rmdup$AliasPerson.MRN),] %>% gro
 df.2022.rmdup[!(df.2022.rmdup$NAME %in% tat.2022.rmdup$Person.NameFull),] %>% group_by(Date) %>% summarize(Count = n())
 
 df.not.tat <- df.2022.rmdup[!(df.2022.rmdup$ACC %in% tat.2022.rmdup$ACC),]
+
+glimpse(df.not.tat)
+df.not.tat$ENCTYP %>% table(useNA = "ifany")  # 42 Inpt, 2 Outpt, 3 Priv Amp
+df.not.tat$CAT %>% table(useNA = "ifany") # 39 are BMP, 2 CMP, 5 Electrolyte Panel, 1 .Stroke BMP
+
+
  
 ### 4524 Outpatient accession numbers are not included in tat.2022 (also 39 inpatient cases, but I care less about that)
   # What else is different about those? Are they all Private Ambulatory?

@@ -18,19 +18,24 @@ library(ggthemes)
 library(ggnewscale)
 
 setwd(paste0(getwd(), "/.."))
-csv2023 <- read.csv(paste0(
-  getwd(), "/00. Data/02. Combined Data/AGAP_0611-081923.csv"
-))
 csv2022 <- read.csv(paste0(
   getwd(), "/00. Data/02. Combined Data/AGAP_0612-082022.csv"
 ))
-csvCombined <- bind_rows(csv2022, csv2023)
+csv2023 <- read.csv(paste0(
+  getwd(), "/00. Data/02. Combined Data/AGAP_0611-081923.csv"
+))
+tat2022 <- read.csv(paste0(
+  getwd(), "/00. Data/02. Combined Data/TAT_0612-082022.csv"
+))
+tat2023 <- read.csv(paste0(
+  getwd(), "/00. Data/02. Combined Data/TAT_0611-081923.csv"
+))
+
 ```
 
 ## 2. Clean data, add Location and prePost variables
 
 -   Filter patient location for Emergency, Inpatient, and Outpatient (including "Private Ambulatory")
--   Add prePost variable (2022 = 0, 2023 = 1)
 -   Add Time, Date, and DayOfWeek variables (extracted from PERFORM_DT_TM)
 
 ```{r, echo = FALSE}
@@ -41,6 +46,7 @@ clean.csv <- function(dataframe) {
   dataframe <- dataframe %>% 
     filter(!is.na(RESULT)) %>% 
     filter(str_ends(SVCRSC, "C702")) %>% 
+    filter(!(CAT == ".BMPP" | CAT == ".CMPP")) %>% 
     filter(ENCTYP == 'Inpatient' |
              ENCTYP == 'Outpatient' |
              ENCTYP == 'Emergency' |
@@ -60,14 +66,29 @@ clean.csv <- function(dataframe) {
   return(dataframe)
 }
 
-df <- clean.csv(csvCombined)
-df <- df %>% 
-  mutate(
-    prePost = if_else(str_detect(PERFORM_DT_TM,"/22 "), 0, 1)
-  )
+clean.tat <- function(dataframe) {
+  names(dataframe) <- str_replace_all(names(dataframe), "\\.\\.\\.", "")
+  dataframe <- dataframe %>% 
+    filter(
+      Accession.NbrFormatted != "---",
+      Order.Status == "Completed"
+    ) %>% 
+    mutate(
+      ACC = str_trim(Accession.NbrFormatted, side = "right"),
+      Date.TimeOrder = mdy_hm(str_remove_all(Date.TimeOrder, ",")),
+      Date.TimeReq.Coll = mdy_hm(str_remove_all(Date.TimeReq.Coll, ",'")),
+      Date.TimeDrawn = mdy_hm(str_remove_all(Date.TimeDrawn, ",'")),
+      Date.TimeIn.Lab = mdy_hm(str_remove_all(Date.TimeIn.Lab, ",'")),
+      Date.TimeComplete = mdy_hm(str_remove_all(Date.TimeComplete, ",'")),
+    )
+  return(dataframe)
+}
 
-df.2022 <- filter(df, prePost == 0)
-df.2023 <- filter(df, prePost == 1)
+df.2022 <- clean.csv(csv2022)
+df.2023 <- clean.csv(csv2023)
+
+tat.2022 <- clean.tat(tat2022)
+tat.2023 <- clean.tat(tat2023)
 
 days <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
 dates.2022 <- str_sub(df.2022$PERFORM_DT_TM, start = 1, end = 8)
@@ -102,7 +123,10 @@ df.2023 <- df.2023 %>%
   )
 
 df.2022.rmdup <- df.2022[!duplicated(df.2022$MRN),]
+df.2022.rmdup <- df.2022.rmdup[(df.2022.rmdup$ACC %in% tat.2022$ACC),]
+
 df.2023.rmdup <- df.2023[!duplicated(df.2023$MRN),]
+df.2023.rmdup <- df.2023.rmdup[(df.2023.rmdup$ACC %in% tat.2023$ACC),]
 
 df.2022.rmdup.wkday <- df.2022.rmdup %>% filter((DayOfWeek != "Saturday") & (DayOfWeek != "Sunday")) 
 df.2023.rmdup.wkday <- df.2023.rmdup %>% filter((DayOfWeek != "Saturday") & (DayOfWeek != "Sunday"))
@@ -240,8 +264,6 @@ dayplot.2023
 
 ```{r, echo = FALSE}
 highRateComparison <- function(dataframe1, dataframe2, highlevel) {
-  df1.name <- deparse(substitute(dataframe1))
-  df2.name <- deparse(substitute(dataframe2))
   
   by_Time1 <- dataframe1 %>% 
     group_by(Time) %>% 
@@ -269,9 +291,6 @@ highRateComparison <- function(dataframe1, dataframe2, highlevel) {
       color = "black", pch = 21, size = 4) +
     scale_fill_gradient(low = "#cae5ee", high = "#003648") +
     labs(fill = "2023 Total")
-  # +
-  #   annotate("text", x = 12, y = 0.2,label = paste0("Red = ",df1.name), color = "#c5373d") +
-  #   annotate("text", x = 12, y = 0.19, label = paste0("Blue = ",df2.name), color = "#006eae")
   
   return(plot.compare)
 }
@@ -378,20 +397,22 @@ HighTotal.plot <- ggplot() +
   theme_minimal()
 HighTotal.plot
 
-by_Time.2022 %>% print(n=24) %>% kable(caption = "2022 Anion Gap Testing by Hour")
-by_Time.2023 %>% print(n=24) %>% kable(caption = "2023 Anion Gap Testing by Hour")
 
-# by_Time.2023 %>% filter(Location == "Outpatient") %>% print(n=24)
+# by_Time.2022 %>% print(n=24) %>% kable(caption = "2022 Anion Gap Testing by Hour")
+# by_Time.2023 %>% print(n=24) %>% kable(caption = "2023 Anion Gap Testing by Hour")
+# 
+# # by_Time.2023 %>% filter(Location == "Outpatient") %>% print(n=24)
+# 
+# ggplot(data = df.2022.rmdup.wkday, aes(x = Time)) +
+#   geom_bar(aes(fill = RESULT >= 18)) +
+#   scale_fill_manual(values = c("#1b9e77", "#d95f02")) +
+#   labs(title = "2022 Number of Tests Run by Hour (weekdays)")
+# 
+# ggplot(data = df.2023.rmdup.wkday, aes(x = Time)) +
+#   geom_bar(aes(fill = RESULT >= 18)) +
+#   scale_fill_manual(values = c("#1b9e77", "#d95f02")) +
+#   labs(title = "2023 Number of Tests Run by Hour (weekdays)")
 
-ggplot(data = df.2022.rmdup.wkday, aes(x = Time)) +
-  geom_bar(aes(fill = RESULT >= 18)) +
-  scale_fill_manual(values = c("#1b9e77", "#d95f02")) +
-  labs(title = "2022 Number of Tests Run by Hour (weekdays)")
-
-ggplot(data = df.2023.rmdup.wkday, aes(x = Time)) +
-  geom_bar(aes(fill = RESULT >= 18)) +
-  scale_fill_manual(values = c("#1b9e77", "#d95f02")) +
-  labs(title = "2023 Number of Tests Run by Hour (weekdays)")
 ```
 
 ### Sensitivity Analysis
@@ -442,7 +463,15 @@ ggplot(data = sens.df, aes(x = Time)) +
   theme_minimal()
 ```
 
-## 6. Anion Gap Testing by Day
+## 6. Relationship Between Turnaround Time and Anion Gap
+
+```{r, echo = FALSE}
+
+
+
+```
+
+## 7. Anion Gap Testing by Day
 
 ```{r, echo = FALSE}
 by_Date.2022 <- df.2022.rmdup %>% 
