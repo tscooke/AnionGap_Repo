@@ -94,7 +94,7 @@ df.2022.rmdup[!(df.2022.rmdup$ACC %in% tat.2022.rmdup$ACC),] %>% group_by(Date) 
 df.2022.rmdup[!(df.2022.rmdup$MRN %in% tat.2022.rmdup$AliasPerson.MRN),] %>% group_by(Date) %>% summarize(Count = n())
 df.2022.rmdup[!(df.2022.rmdup$NAME %in% tat.2022.rmdup$Person.NameFull),] %>% group_by(Date) %>% summarize(Count = n())
 
-df.not.tat <- df.2022.rmdup[!(df.2022.rmdup$ACC %in% tat.2022.rmdup$ACC),]
+df.not.tat <- df.2022.rmdup[!(df.2022.rmdup$ACC %in% tat.2022$ACC),]
 
 glimpse(df.not.tat)
 df.not.tat$ENCTYP %>% table(useNA = "ifany")  # 42 Inpt, 2 Outpt, 3 Priv Amp

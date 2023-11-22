@@ -260,7 +260,7 @@ dayplot.2023
 
 ```
 
-## 5. Anion Gap Testing by Time
+## 5. Anion Gap Elevation by Time
 
 ```{r, echo = FALSE}
 highRateComparison <- function(dataframe1, dataframe2, highlevel) {
@@ -339,6 +339,7 @@ Outpt.plot <- highRateComparison(
 Inpt.plot
 Emerg.plot
 Outpt.plot #Why are there some missing values in plot???
+           #Because there were no tests in that time frame in the dataset
 
 by_Time.otpt2023 <- df.2023.rmdup.wkday %>%
   filter(Location == "Outpatient") %>%
@@ -467,6 +468,44 @@ ggplot(data = sens.df, aes(x = Time)) +
 
 ```{r, echo = FALSE}
 
+#df.2022 and df.2023 are already filtered to only include rows that also have a TAT 
+
+# 1) Add TAT columns to df.2022 and df.2023
+# 2) Plot TAT against hour as a box and whisker
+# 3) Plot TAT against difference between 2022 AG and 2023 AG -- how would this work?
+    # Plot TAT against AG for 2022 and 2023 and do a linear(?) regression - there should be no pattern,
+    # but if TAT does predict AG, then we would expect to see a positive trend in 2022 but not 2023.
+    # It might be subtle, so try with all the whole range of data first, but also try with only AG ≥ 16
+# 4) Update code to use lubridate instead of manually calculating day of the week for df  
+
+tat.2022.rmdup <- tat.2022 %>% 
+  arrange(Date.TimeComplete) %>% 
+  filter(!duplicated(ACC))
+
+tat.2023.rmdup <- tat.2023 %>% 
+  arrange(Date.TimeComplete) %>% 
+  filter(!duplicated(ACC))
+
+df.2022.rmdup.wkday.tat <- merge(
+  x = df.2022.rmdup.wkday,
+  y = tat.2022.rmdup[c("ACC", "Date.TimeOrder", "Date.TimeReq.Coll", "Date.TimeDrawn", "Date.TimeIn.Lab", "Date.TimeComplete")],
+  by.x = "ACC",
+  by.y = "ACC"
+)
+
+df.2023.rmdup.wkday.tat <- merge(
+  x = df.2023.rmdup.wkday,
+  y = tat.2023.rmdup[c("ACC", "Date.TimeOrder", "Date.TimeReq.Coll", "Date.TimeDrawn", "Date.TimeIn.Lab", "Date.TimeComplete")],
+  by.x = "ACC",
+  by.y = "ACC"
+)
+
+tatAnalysis <- function(dataframe) {
+  output <- dataframe %>% 
+    mutate(
+      TAT = Date.TimeIn.Lab - Date.TimeComplete
+    )
+}
 
 
 ```
