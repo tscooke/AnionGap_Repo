@@ -191,12 +191,6 @@ overlay.plot <- plot.2022 +
   annotate("text", x = 30, y = 4700, label = "Blue = 2023", color = "blue")
 overlay.plot
 
-# Inpt22 <- "#fd974f"
-# Emrg22 <- "#d61800"
-# Otpt22 <- "#7f152e"
-# Inpt23 <- "#4cb5f5"
-# Emrg23 <- "#337bae"
-# Otpt23 <- "#1a405f"
 Inpt22 <- "#e9a0a5"
 Emrg22 <- "#c5373d"
 Otpt22 <- "#730c0d"
@@ -296,61 +290,30 @@ highRateComparison <- function(dataframe1, dataframe2, highlevel) {
 }
 
 high <- 18
-# 
-# highRateComparison(df.2022.rmdup.wkday, df.2023.rmdup.wkday, 18) +
-#   labs(title = "test title")
 
 Inpt.plot <- highRateComparison(
   filter(df.2022.rmdup.wkday, Location == "Inpatient"),
   filter(df.2023.rmdup.wkday, Location == "Inpatient"),
   highlevel = high) +
-  labs(title = paste0("Rate of Anion Gap ≥ ", high," by Hour, Inpatient (weekdays)")) 
-# +
-#   annotate(
-#     "text", x = 12, y = 0.25, lineheight = 1.8, hjust = 0,
-#     label = c("Red = 2022", "\nBlue = 2023"), 
-#     color = c("red", "blue")
-#   )
+  labs(title = paste0("Proportion of Anion Gap ≥ ", high," by Hour, Inpatient (weekdays)")) 
 
 Emerg.plot <- highRateComparison(
   filter(df.2022.rmdup.wkday, Location == "Emergency"),
   filter(df.2023.rmdup.wkday, Location == "Emergency"),
   highlevel = high) +
-  labs(title = paste0("Rate of Anion Gap ≥ ", high," by Hour, Emergency (weekdays)")) 
-# +
-#   annotate(
-#     "text", x = 12, y = 0.25, lineheight = 1.8, hjust = 0,
-#     label = c("Red = 2022", "\nBlue = 2023"), 
-#     color = c("red", "blue")
-#   )
+  labs(title = paste0("Proportion of Anion Gap ≥ ", high," by Hour, Emergency (weekdays)")) 
 
 Outpt.plot <- highRateComparison(
   filter(df.2022.rmdup.wkday, Location == "Outpatient"),
   filter(df.2023.rmdup.wkday, Location == "Outpatient"),
   highlevel = high) +
-  labs(title = paste0("Rate of Anion Gap ≥ ", high," by Hour, Outpatient (weekdays)")) 
-# +
-#   annotate(
-#     "text", x = 12, y = 0.25, lineheight = 1.8, hjust = 0,
-#     label = c("Red = 2022", "\nBlue = 2023"), 
-#     color = c("red", "blue")
-#   )
+  labs(title = paste0("Proportion of Anion Gap ≥ ", high," by Hour, Outpatient (weekdays)")) 
+
 
 Inpt.plot
 Emerg.plot
 Outpt.plot #Why are there some missing values in plot???
            #Because there were no tests in that time frame in the dataset
-
-by_Time.otpt2023 <- df.2023.rmdup.wkday %>%
-  filter(Location == "Outpatient") %>%
-  group_by(Time) %>%
-  summarize(High = sum(RESULT >= high), Total = n())
-# by_Time.otpt2023 # Checking to confirm why there are "missing" points on graph
-
-by_Time.inpt2022 <- df.2022.rmdup.wkday %>% 
-  filter(Location == "Inpatient") %>% 
-  group_by(Time) %>% 
-  summarize(High = sum(RESULT >= high), Total = n())
 
 by_Time.2022 <- df.2022.rmdup.wkday %>% 
   group_by(Time) %>% 
@@ -392,27 +355,9 @@ HighTotal.plot <- ggplot() +
     ) +
   scale_fill_gradient(low = "#cae5ee", high = "#003648") +
   labs(fill = "2023 Total") +
-  # annotate("text", x = 12, y = 0.2,label = "Red = 2022", color = "red") +
-  # annotate("text", x = 12, y = 0.19, label = "Blue = 2023", color = "blue") +
-  labs(title = "Rate of High Anion Gap by Time of Day (weekdays)") +
+  labs(title = "Proportion of High Anion Gap by Time of Day (weekdays)") +
   theme_minimal()
 HighTotal.plot
-
-
-# by_Time.2022 %>% print(n=24) %>% kable(caption = "2022 Anion Gap Testing by Hour")
-# by_Time.2023 %>% print(n=24) %>% kable(caption = "2023 Anion Gap Testing by Hour")
-# 
-# # by_Time.2023 %>% filter(Location == "Outpatient") %>% print(n=24)
-# 
-# ggplot(data = df.2022.rmdup.wkday, aes(x = Time)) +
-#   geom_bar(aes(fill = RESULT >= 18)) +
-#   scale_fill_manual(values = c("#1b9e77", "#d95f02")) +
-#   labs(title = "2022 Number of Tests Run by Hour (weekdays)")
-# 
-# ggplot(data = df.2023.rmdup.wkday, aes(x = Time)) +
-#   geom_bar(aes(fill = RESULT >= 18)) +
-#   scale_fill_manual(values = c("#1b9e77", "#d95f02")) +
-#   labs(title = "2023 Number of Tests Run by Hour (weekdays)")
 
 ```
 
@@ -464,19 +409,11 @@ ggplot(data = sens.df, aes(x = Time)) +
   theme_minimal()
 ```
 
-## 6. Relationship Between Turnaround Time and Anion Gap
+## 6. Turnaround Time Analysis
+
+
 
 ```{r, echo = FALSE}
-
-#df.2022 and df.2023 are already filtered to only include rows that also have a TAT 
-
-# 1) Add TAT columns to df.2022 and df.2023
-# 2) Plot TAT against hour as a box and whisker
-# 3) Plot TAT against difference between 2022 AG and 2023 AG -- how would this work?
-    # Plot TAT against AG for 2022 and 2023 and do a linear(?) regression - there should be no pattern,
-    # but if TAT does predict AG, then we would expect to see a positive trend in 2022 but not 2023.
-    # It might be subtle, so try with all the whole range of data first, but also try with only AG ≥ 16
-# 4) Update code to use lubridate instead of manually calculating day of the week for df  
 
 tat.2022.rmdup <- tat.2022 %>% 
   arrange(Date.TimeComplete) %>% 
@@ -503,10 +440,151 @@ df.2023.rmdup.wkday.tat <- merge(
 tatAnalysis <- function(dataframe) {
   output <- dataframe %>% 
     mutate(
-      TAT = Date.TimeIn.Lab - Date.TimeComplete
+      Time.InLab = str_pad(hour(Date.TimeIn.Lab), 2, side = "left", pad = "0"),
+      TAT_min = difftime(Date.TimeComplete, Date.TimeIn.Lab, units = "mins"),
+      TAT_hrs = as.double(difftime(Date.TimeComplete, Date.TimeIn.Lab, units = "hours"))
     )
+  return(output)
 }
 
+df.2022.rmdup.wkday.tat <- tatAnalysis(df.2022.rmdup.wkday.tat)
+df.2023.rmdup.wkday.tat <- tatAnalysis(df.2023.rmdup.wkday.tat)
+
+ggplot(df.2022.rmdup.wkday.tat, aes(x = TAT_hrs)) +
+  geom_histogram(binwidth = 0.25, color = "black", fill = "red", alpha = 0.5) +
+  coord_cartesian(xlim = c(0, 12)) +
+  scale_x_continuous(breaks = seq(0, 12, 1), ) +
+  ylab("Count") +
+  xlab("Turnaround Time (hours)") +
+  theme_minimal() +
+  geom_histogram(data = df.2023.rmdup.wkday.tat, aes(x = TAT_hrs), color = "black", fill = "blue", alpha = 0.5, binwidth = 0.25) +
+  annotate("text", x = 1, y = 6000, label = "2022", color = "red", alpha = 0.5, hjust = 0) +
+  annotate("text", x = 0.75, y = 10500, label = "2023", color = "blue", alpha = 0.5, hjust = 0) +
+  labs(title = "2022 vs. 2023 Histogram of AG Turnaround Time")
+
+plot.2022.location.timein <- ggplot(df.2022.rmdup.wkday.tat, aes(x = as.numeric(Time.InLab))) +
+  geom_freqpoly(data = filter(df.2022.rmdup.wkday.tat, Location == "Inpatient"), color = Inpt22, binwidth = 1) +
+  geom_freqpoly(data = filter(df.2022.rmdup.wkday.tat, Location == "Emergency"), color = Emrg22, binwidth = 1) +
+  geom_freqpoly(data = filter(df.2022.rmdup.wkday.tat, Location == "Outpatient"), color = Otpt22, binwidth = 1) +
+  labs(title = "2022 Anion Gap Frequency Plot by Time Received in Lab") +
+  theme_minimal() +
+  xlab("Time") +
+  ylab("Count") +
+  scale_x_continuous(breaks = 0:23, limits = c(0, 23), minor_breaks = NULL) +
+  annotate("text", x = 14, y = 125, label = "Inpatient", color = Inpt22, fontface = "italic") +
+  annotate("text", x = 14, y = 425, label = "Emergency", color = Emrg22, fontface = "italic") +
+  annotate("text", x = 14.5, y = 1875, label = "Outpatient", color = Otpt22, fontface = "italic")
+
+plot.2023.location.timein <- ggplot(df.2023.rmdup.wkday.tat, aes(x = as.numeric(Time.InLab))) +
+  geom_freqpoly(data = filter(df.2023.rmdup.wkday.tat, Location == "Inpatient"), color = Inpt23, binwidth = 1) +
+  geom_freqpoly(data = filter(df.2023.rmdup.wkday.tat, Location == "Emergency"), color = Emrg23, binwidth = 1) +
+  geom_freqpoly(data = filter(df.2023.rmdup.wkday.tat, Location == "Outpatient"), color = Otpt23, binwidth = 1) +
+  labs(title = "2023 Anion Gap Frequency Plot by Time Received in Lab") +
+  theme_minimal() +
+  xlab("Time") +
+  ylab("Count") +
+  scale_x_continuous(breaks = 0:23, limits = c(0, 23), minor_breaks = NULL) +
+  annotate("text", x = 12, y = 125, label = "Inpatient", color = Inpt23, hjust = 0.5, fontface = "italic") +
+  annotate("text", x = 12, y = 400, label = "Emergency", color = Emrg23, hjust = 0.5, fontface = "italic") +
+  annotate("text", x = 14, y = 1350, label = "Outpatient", color = Otpt23, hjust = 0.5, fontface = "italic")
+
+plot.2022.location.timein
+plot.2023.location.timein
+
+ggplot(df.2022.rmdup.wkday.tat, aes(x = TAT_hrs, group = Location)) +
+  geom_density() +
+  coord_cartesian(xlim = c(0, 12))
+
+ggplot(df.2023.rmdup.wkday.tat, aes(x = TAT_hrs, group = Location)) +
+  geom_density() +
+  coord_cartesian(xlim = c(0, 12))
+
+
+
+```
+
+```{r, echo = FALSE}
+
+ggplot(df.2022.rmdup.wkday.tat, aes(x = Time)) +
+  geom_boxplot(aes(y = TAT_hrs)) +
+  coord_cartesian(ylim = c(0, 12)) +
+  scale_y_continuous(breaks = seq(0, 12, 2)) +
+  theme_minimal() +
+  labs(title = "2022 Anion Gap Turnaround Time vs Hour Completed",
+       subtitle = "105 points with TAT > 12 hrs not shown") +
+  xlab("Hour Completed") +
+  ylab("Turnaround Time (hrs)")
+
+ggplot(df.2022.rmdup.wkday.tat, aes(x = Time.InLab, group = Time.InLab)) +
+  geom_boxplot(aes(y = TAT_hrs)) +
+  coord_cartesian(ylim = c(0, 12)) +
+  scale_y_continuous(breaks = seq(0, 12, 2)) +
+  theme_minimal() +
+  labs(title = "2022 Anion Gap Turnaround Time vs Hour In Lab",
+       subtitle = "105 points with TAT > 12 hrs not shown") +
+  xlab("Hour In Lab") +
+  ylab("Turnaround Time (hrs)")
+
+ggplot(df.2023.rmdup.wkday.tat, aes(x = Time)) +
+  geom_boxplot(aes(y = TAT_hrs)) +
+  coord_cartesian(ylim = c(0, 12)) +
+  scale_y_continuous(breaks = seq(0, 12, 2)) +
+  theme_minimal() +
+  labs(title = "2023 Anion Gap Turnaround Time vs Hour Completed",
+       subtitle = "14 points with TAT > 12 hrs not shown") +
+  xlab("Hour Completed") +
+  ylab("Turnaround Time (hrs)")
+
+ggplot(df.2023.rmdup.wkday.tat, aes(x = Time.InLab, group = Time.InLab)) +
+  geom_boxplot(aes(y = TAT_hrs)) +
+  coord_cartesian(ylim = c(0, 12)) +
+  scale_y_continuous(breaks = seq(0, 12, 2)) +
+  theme_minimal() +
+  labs(title = "2023 Anion Gap Turnaround Time vs Hour In Lab",
+       subtitle = "14 points with TAT > 12 hrs not shown") +
+  xlab("Hour In Lab") +
+  ylab("Turnaround Time (hrs)")
+
+
+ggplot(df.2022.rmdup.wkday.tat, aes(x = TAT_hrs, y = RESULT, color = factor(Time.InLab))) +
+  geom_point() +
+  coord_cartesian(xlim = c(0, 12), ylim = c(0,45)) +
+  scale_color_viridis_d(name = "Legend") +
+  scale_x_continuous(breaks = 0:23) +
+  labs(title = "2022 Anion Gap Turnaround Time vs. Result") +
+  xlab("Turnaround Time (hours)")
+# Looks like slightly skewed graph regardless of time
+  
+# Add specific labels to each of these graphs so that it's clear what they are
+ggplot(df.2022.rmdup.wkday.tat, aes(x = TAT_hrs, y = RESULT)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  ylim(c(16,45))
+
+ggplot(df.2022.rmdup.wkday.tat, aes(x = TAT_hrs, y = RESULT)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  xlim(c(2, 20))
+
+ggplot(df.2023.rmdup.wkday.tat, aes(x = TAT_hrs, y = RESULT)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  coord_cartesian(xlim = c(0, 12), ylim = c(0, 45))
+
+ggplot(df.2023.rmdup.wkday.tat, aes(x = TAT_hrs, y = RESULT)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  ylim(c(16,45))
+
+# There isn't an obvious relationship between TAT and AG. Linear regression is basically the same for both 2022 and 2023
+# If you restrict regression to AG values of ≥16, then there IS a noticeable positive relationship 
+  # between TAT and AG, which is larger in 2022 than 2023. 
+  # Is the justification for this reasonable? We know that there is a higher rate of "elevated" AG values in 2022 than in 2023 we're specifically interested in these values, so that's why we want to do only a regression on those values
+  # Would be helpful to have data from Eldad showing how AG changes when you leave blood sitting out in a cup - that would inform regression cut-offs based on TAT rather than AG (bc AG feels a little like backwards calculating)
+
+summary(lm(RESULT ~ TAT_hrs, data = df.2022.rmdup.wkday.tat))
+
+summary(lm(RESULT ~ TAT_hrs, data = df.2023.rmdup.wkday.tat))
 
 ```
 
