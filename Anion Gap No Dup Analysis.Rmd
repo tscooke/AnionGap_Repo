@@ -856,12 +856,12 @@ SVCRSC.byDateTime.2022 <- df.2022.rmdup.wkday.tat %>%
 ggplot(data = SVCRSC.byDateTime.2022, aes(x = Time, y = Date, fill = n)) +
   geom_tile(data = filter(SVCRSC.byDateTime.2022, SVCRSC == "U C1C702")) +
   theme_minimal() +
-  labs(title = "Cobas Unit 1 Anion Gap Usage by Time Completed")
+  labs(title = "2022 | Cobas Unit 1 Anion Gap Usage by Time Completed")
 
 ggplot(data = SVCRSC.byDateTime.2022, aes(x = Time, y = Date, fill = n)) +
   geom_tile(data = filter(SVCRSC.byDateTime.2022, SVCRSC == "U C2C702")) +
   theme_minimal() +
-  labs(title = "Cobas Unit 2 Anion Gap Usage by Time Completed")
+  labs(title = "2022 | Cobas Unit 2 Anion Gap Usage by Time Completed")
 
 ggplot(data = SVCRSC.byDateTime.2022, aes(x = Time, y = Date, fill = n)) +
   geom_tile(data = filter(SVCRSC.byDateTime.2022, SVCRSC == "U C2C702"), width = 0.4, position = position_nudge(x = 0.2), aes(fill = n)) +
@@ -870,7 +870,7 @@ ggplot(data = SVCRSC.byDateTime.2022, aes(x = Time, y = Date, fill = n)) +
   geom_tile(data = filter(SVCRSC.byDateTime.2022, SVCRSC == "U C1C702"), width = 0.4, position = position_nudge(x = -0.2), aes(fill = n)) +
   scale_fill_gradient(low = "#430b4e", high = "#d3a9ce", name = "Unit 1") +
   theme_minimal() +
-  labs(title = "Cobas Unit Anion Gap Usage by Time Completed")
+  labs(title = "2022 | Cobas Unit Anion Gap Usage by Time Completed")
 
 SVCRSC.byDateTime.2023 <- df.2023.rmdup.wkday.tat %>% 
   group_by(Date, Time, SVCRSC) %>% 
@@ -879,17 +879,17 @@ SVCRSC.byDateTime.2023 <- df.2023.rmdup.wkday.tat %>%
 ggplot(data = SVCRSC.byDateTime.2023, aes(x = Time, y = Date, fill = n)) +
   geom_tile(data = filter(SVCRSC.byDateTime.2023, SVCRSC == "UC3C702")) +
   theme_minimal() +
-  labs(title = "Cobas Unit 3 Anion Gap Usage by Time Completed")
+  labs(title = "2023 | Cobas Unit 3 Anion Gap Usage by Time Completed")
 
 ggplot(data = SVCRSC.byDateTime.2023, aes(x = Time, y = Date, fill = n)) +
   geom_tile(data = filter(SVCRSC.byDateTime.2023, SVCRSC == "UC4C702")) +
   theme_minimal() +
-  labs(title = "Cobas Unit 4 Anion Gap Usage by Time Completed")
+  labs(title = "2023 | Cobas Unit 4 Anion Gap Usage by Time Completed")
 
 ggplot(data = SVCRSC.byDateTime.2023, aes(x = Time, y = Date, fill = n)) +
   geom_tile(data = filter(SVCRSC.byDateTime.2023, SVCRSC == "UC5C702")) +
   theme_minimal() +
-  labs(title = "Cobas Unit 5 Anion Gap Usage by Time Completed")
+  labs(title = "2023 | Cobas Unit 5 Anion Gap Usage by Time Completed")
 
 
 
