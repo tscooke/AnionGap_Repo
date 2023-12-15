@@ -711,6 +711,7 @@ ggplot(df.2022.rmdup.wkday.tat, aes(x = Time.InLab, group = Time.InLab)) +
   xlab("Time Received") +
   ylab("Turnaround Time (hrs)")
 ```
+
 Box-and-whisker plot notes: 
 The median is shown by a line in the middle of the box.
 The lower and upper hinges correspond to the first and third quartiles (the 25th and 75th percentiles). The whiskers extend from the hinge to the smallest and largest values no further than 1.5 * IQR (inter-quartile range) from the hinge.
@@ -805,16 +806,105 @@ ggplot(df.2022.rmdup.wkday.tat, aes(x = TAT_hrs, y = RESULT, color = factor(Time
   scale_x_continuous(breaks = 0:23) +
   labs(title = "2022 Anion Gap Turnaround Time vs. Result") +
   xlab("Turnaround Time (hours)")
-# Looks like slightly skewed graph regardless of time
 
 ggplot(df.2022.rmdup.wkday.tat, aes(x = RESULT, y = TAT_hrs, color = factor(Time.InLab))) +
   geom_point() +
   coord_cartesian(xlim = c(0, 45), ylim = c(0, 12)) +
   scale_color_viridis_d(name = "Legend") +
   scale_y_continuous(breaks = 0:12) +
-  labs(title = "2022 Anion Gap Turnaround Time vs. Result") +
+  labs(title = "2022 Anion Gap Turnaround Time vs. Result (All Data)") +
   xlab("RESULT") +
   ylab("Turnaround Time (hours)")
+
+df.2022.rmdup.wkday.tat.otpt <- df.2022.rmdup.wkday.tat %>% 
+  filter(Location == "Outpatient") %>% 
+  mutate(
+    RESULT.16 = as.integer(RESULT >= 16),
+    RESULT.18 = as.integer(RESULT >= 18),
+    RESULT.20 = as.integer(RESULT >= 20)
+  )
+
+summary(
+  glm(
+    RESULT.16 ~ TAT_hrs, 
+    data = filter(df.2022.rmdup.wkday.tat.otpt, TAT_hrs <= 1), 
+    family = "binomial"
+    )
+  )
+summary(
+  glm(
+    RESULT.16 ~ TAT_hrs, 
+    data = filter(df.2022.rmdup.wkday.tat.otpt, TAT_hrs <= 2), 
+    family = "binomial"
+    )
+  )
+summary(
+  glm(
+    RESULT.16 ~ TAT_hrs, 
+    data = filter(df.2022.rmdup.wkday.tat.otpt, TAT_hrs <= 3), 
+    family = "binomial"
+    )
+  )
+summary(
+  glm(
+    RESULT.16 ~ TAT_hrs, 
+    data = filter(df.2022.rmdup.wkday.tat.otpt, TAT_hrs <= 4), 
+    family = "binomial"
+    )
+  )
+
+df.2023.rmdup.wkday.tat.otpt <- df.2023.rmdup.wkday.tat %>% 
+  filter(Location == "Outpatient") %>% 
+  mutate(
+    RESULT.16 = as.integer(RESULT >= 16),
+    RESULT.18 = as.integer(RESULT >= 18),
+    RESULT.20 = as.integer(RESULT >= 20)
+  )
+
+summary(
+  glm(
+    RESULT.16 ~ TAT_hrs, 
+    data = filter(df.2023.rmdup.wkday.tat.otpt, TAT_hrs <= 1), 
+    family = "binomial"
+    )
+  )
+summary(
+  glm(
+    RESULT.16 ~ TAT_hrs, 
+    data = filter(df.2023.rmdup.wkday.tat.otpt, TAT_hrs <= 2), 
+    family = "binomial"
+    )
+  )
+summary(
+  glm(
+    RESULT.16 ~ TAT_hrs, 
+    data = filter(df.2023.rmdup.wkday.tat.otpt, TAT_hrs <= 3), 
+    family = "binomial"
+    )
+  )
+summary(
+  glm(
+    RESULT.16 ~ TAT_hrs, 
+    data = filter(df.2023.rmdup.wkday.tat.otpt, TAT_hrs <= 4), 
+    family = "binomial"
+    )
+  )
+
+summary(lm(RESULT ~ TAT_hrs, data = filter(df.2022.rmdup.wkday.tat.otpt, TAT_hrs <= 1)))
+summary(lm(RESULT ~ TAT_hrs, data = filter(df.2022.rmdup.wkday.tat.otpt, TAT_hrs <= 2)))
+summary(lm(RESULT ~ TAT_hrs, data = filter(df.2022.rmdup.wkday.tat.otpt, TAT_hrs <= 3)))
+summary(lm(RESULT ~ TAT_hrs, data = filter(df.2022.rmdup.wkday.tat.otpt, TAT_hrs <= 4)))
+
+
+df.2023.rmdup.wkday.tat.otpt <- df.2023.rmdup.wkday.tat %>% 
+  filter(Location == "Outpatient")
+summary(lm(RESULT ~ TAT_hrs, data = filter(df.2023.rmdup.wkday.tat.otpt, TAT_hrs <= 1)))
+summary(lm(RESULT ~ TAT_hrs, data = filter(df.2023.rmdup.wkday.tat.otpt, TAT_hrs <= 2)))
+summary(lm(RESULT ~ TAT_hrs, data = filter(df.2023.rmdup.wkday.tat.otpt, TAT_hrs <= 3)))
+summary(lm(RESULT ~ TAT_hrs, data = filter(df.2023.rmdup.wkday.tat.otpt, TAT_hrs <= 4)))
+
+ggplot(filter(df.2022.rmdup.wkday.tat, TAT_hrs <= TAT.cutoff), aes(x = RESULT, y = TAT_hrs, color = factor(Time.InLab))) +
+  
 
 ggplot(df.2023.rmdup.wkday.tat, aes(x = RESULT, y = TAT_hrs, color = factor(Time.InLab))) +
   geom_point() +
@@ -829,7 +919,6 @@ summary(lm(RESULT ~ TAT_hrs, data = df.2022.rmdup.wkday.tat))
 
 summary(lm(RESULT ~ TAT_hrs, data = df.2023.rmdup.wkday.tat))
 
-# Add specific labels to each of these graphs so that it's clear what they are
 ggplot(df.2022.rmdup.wkday.tat, aes(x = TAT_hrs, y = RESULT)) +
   geom_point() +
   geom_smooth(method = "lm") +
@@ -850,8 +939,6 @@ ggplot(df.2023.rmdup.wkday.tat, aes(x = TAT_hrs, y = RESULT)) +
 SVCRSC.byDateTime.2022 <- df.2022.rmdup.wkday.tat %>% 
   group_by(Date, Time, SVCRSC) %>% 
   summarize(n = n())
-  
-
 
 ggplot(data = SVCRSC.byDateTime.2022, aes(x = Time, y = Date, fill = n)) +
   geom_tile(data = filter(SVCRSC.byDateTime.2022, SVCRSC == "U C1C702")) +
