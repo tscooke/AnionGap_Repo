@@ -31,6 +31,13 @@ tat2022 <- read.csv(paste0(
 tat2023 <- read.csv(paste0(
   getwd(), "/00. Data/02. Combined Data/TAT_0611-081923.csv"
 ))
+cr2023 <- read.csv(paste0(
+  getwd(), "/00. Data/02. Combined Data/Creatinine_0611-081923.csv"
+))
+cr2022 <- read.csv(paste0(
+  getwd(), "/00. Data/02. Combined Data/Creatinine_0612-082022.csv"
+))
+
 
 ```
 
@@ -85,11 +92,23 @@ clean.tat <- function(dataframe) {
   return(dataframe)
 }
 
+clean.cr <- function(dataframe) {
+  dataframe <- dataframe[!duplicated(dataframe$ACC),]
+  
+  names(dataframe) <- paste0("cr_", names(dataframe))
+  
+  return(dataframe)
+}
+
+
 df.2022 <- clean.csv(csv2022)
 df.2023 <- clean.csv(csv2023)
 
 tat.2022 <- clean.tat(tat2022)
 tat.2023 <- clean.tat(tat2023)
+
+cr.2022 <- clean.cr(cr2022)
+cr.2023 <- clean.cr(cr2023)
 
 days <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
 dates.2022 <- str_sub(df.2022$PERFORM_DT_TM, start = 1, end = 8)
@@ -147,11 +166,27 @@ df.2022.rmdup.wkday.tat <- merge(
   by.y = "ACC"
 )
 
+#### Remove the .cr from this later, it was only included for testing purposes. 
+df.2022.rmdup.wkday.tat.cr <- merge(
+  x = df.2022.rmdup.wkday.tat,
+  y = cr.2022[c("cr_ACC", "cr_RESULT", "cr_NORM", "cr_MRN")],
+  by.x = "ACC",
+  by.y = "cr_ACC"
+)
+
 df.2023.rmdup.wkday.tat <- merge(
   x = df.2023.rmdup.wkday,
   y = tat.2023.rmdup[c("ACC", "Date.TimeOrder", "Date.TimeReq.Coll", "Date.TimeDrawn", "Date.TimeIn.Lab", "Date.TimeComplete")],
   by.x = "ACC",
   by.y = "ACC"
+)
+
+#### Remove the .cr from this later, it was only included for testing purposes. 
+df.2023.rmdup.wkday.tat.cr <- merge(
+  x = df.2023.rmdup.wkday.tat,
+  y = cr.2023[c("cr_ACC", "cr_RESULT", "cr_NORM", "cr_MRN")],
+  by.x = "ACC",
+  by.y = "cr_ACC"
 )
 
 tatAnalysis <- function(dataframe) {
@@ -816,6 +851,8 @@ ggplot(df.2022.rmdup.wkday.tat, aes(x = RESULT, y = TAT_hrs, color = factor(Time
   xlab("RESULT") +
   ylab("Turnaround Time (hours)")
 
+####### UPDATE this block to include Creatinine filter (exclude anyone with "H" in cr_NORM), then re-run logistic / linear 
+####### regressions and see if that changes results
 df.2022.rmdup.wkday.tat.otpt <- df.2022.rmdup.wkday.tat %>% 
   filter(Location == "Outpatient") %>% 
   mutate(
